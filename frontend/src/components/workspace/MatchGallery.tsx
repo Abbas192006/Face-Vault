@@ -1,0 +1,337 @@
+import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Check, ScanFace, Heart, Tag, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { getImageUrl, toggleBookmark, addPhotoTag, removePhotoTag } from '@/lib/api'
+import { cn } from '@/lib/cn'
+import { useSearchStore } from '@/stores/search-store'
+import { useUIStore } from '@/stores/ui-store'
+import { toast } from 'sonner'
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.05 },
+  },
+}
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20, scale: 0.95 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { type: 'spring' as const, stiffness: 300, damping: 24 },
+  },
+}
+
+export function MatchGallery() {
+  const { matches, hasSearched, selectedPaths, toggleSelection, setSelections } = useSearchStore()
+  const { galleryView } = useUIStore()
+
+  // Local state for tags and bookmarks to show immediate UI updates
+  const [localBookmarks, setLocalBookmarks] = useState<Record<string, boolean>>({})
+  const [localTags, setLocalTags] = useState<Record<string, string[]>>({})
+
+  // Lightbox & Selection state
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+  const [tagInputOpen, setTagInputOpen] = useState<string | null>(null)
+  const [newTagValue, setNewTagValue] = useState('')
+  const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null)
+  const [visibleCount, setVisibleCount] = useState(100)
+
+  // Reset visible count when matches array changes (e.g. new search)
+  useEffect(() => {
+    setVisibleCount(100)
+  }, [matches])
+
+  if (hasSearched && matches.length === 0) {
+    return (
+      <div className="text-center py-20 text-on-surface-variant">
+        No matches found. Try adjusting strictness or uploading clearer selfies.
+      </div>
+    )
+  }
+
+  if (matches.length === 0) return null
+
+  const handleBookmark = async (e: React.MouseEvent, path: string, isBookmarked: boolean) => {
+    e.stopPropagation()
+    const newValue = !isBookmarked
+    setLocalBookmarks(prev => ({ ...prev, [path]: newValue }))
+    try {
+      await toggleBookmark(path, isBookmarked)
+      toast.success(newValue ? 'Photo bookmarked' : 'Bookmark removed')
+    } catch {
+      setLocalBookmarks(prev => ({ ...prev, [path]: isBookmarked })) // revert
+      toast.error('Failed to update bookmark')
+    }
+  }
+
+  const handleAddTag = async (path: string, currentTags: string[]) => {
+    if (!newTagValue.trim()) {
+      setTagInputOpen(null)
+      return
+    }
+    const label = newTagValue.trim().toLowerCase()
+    if (currentTags.includes(label)) {
+      setTagInputOpen(null)
+      setNewTagValue('')
+      return
+    }
+    
+    setLocalTags(prev => ({ ...prev, [path]: [...currentTags, label] }))
+    setTagInputOpen(null)
+    setNewTagValue('')
+    
+    try {
+      await addPhotoTag(path, label)
+      toast.success('Tag added')
+    } catch {
+      setLocalTags(prev => ({ ...prev, [path]: currentTags })) // revert
+      toast.error('Failed to add tag')
+    }
+  }
+
+  const handleRemoveTag = async (e: React.MouseEvent, path: string, label: string, currentTags: string[]) => {
+    e.stopPropagation()
+    setLocalTags(prev => ({ ...prev, [path]: currentTags.filter(t => t !== label) }))
+    try {
+      await removePhotoTag(path, label)
+      toast.success('Tag removed')
+    } catch {
+      setLocalTags(prev => ({ ...prev, [path]: currentTags })) // revert
+      toast.error('Failed to remove tag')
+    }
+  }
+
+  const handleSelect = (e: React.MouseEvent, path: string, idx: number) => {
+    e.preventDefault()
+    if (e.shiftKey && lastSelectedIndex !== null) {
+      const start = Math.min(lastSelectedIndex, idx)
+      const end = Math.max(lastSelectedIndex, idx)
+      const rangePaths = matches.slice(start, end + 1).map(m => m.photo.filepath)
+      const newSelected = new Set(selectedPaths)
+      
+      // If the current clicked item is ALREADY selected, and we shift click, we might want to deselect the range?
+      // Simple standard behavior: Shift-click adds the range to selection.
+      rangePaths.forEach(p => newSelected.add(p))
+      setSelections(Array.from(newSelected))
+    } else {
+      toggleSelection(path)
+    }
+    setLastSelectedIndex(idx)
+  }
+
+  return (
+    <>
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className={cn(
+          galleryView === 'grid'
+            ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-gutter'
+            : 'flex flex-col gap-4',
+        )}
+      >
+        {matches.slice(0, visibleCount).map((match, idx) => {
+          const path = match.photo.filepath
+          const isSelected = selectedPaths.has(path)
+          const score = Math.max(0, 100 - match.distance * 50).toFixed(1)
+          const isBookmarked = localBookmarks[path] ?? match.bookmarked
+          const tags = localTags[path] ?? match.tags ?? []
+
+          return (
+            <motion.div
+              key={`${path}-${idx}`}
+              variants={itemVariants}
+              whileHover={{ scale: 1.02, y: -4 }}
+              onClick={(e) => handleSelect(e, path, idx)}
+              className={cn(
+                'relative rounded-xl overflow-hidden glass-card image-card cursor-pointer border-2 transition-colors group',
+                galleryView === 'grid' ? 'h-[300px]' : 'h-24 flex flex-row',
+                isSelected ? 'border-primary scanner-glow' : 'border-transparent',
+              )}
+            >
+              <img
+                className={cn(
+                  'object-cover',
+                  galleryView === 'grid' ? 'w-full h-full' : 'w-24 h-full shrink-0',
+                )}
+                src={getImageUrl(path)}
+                alt={match.photo.filename}
+                loading="lazy"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setLightboxIndex(idx)
+                }}
+              />
+              
+              <div
+                className={cn(
+                  'absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/80 via-black/20 to-transparent image-hover-overlay',
+                  galleryView === 'list' && 'left-24',
+                )}
+              >
+                {/* Top Action Bar */}
+                <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 bg-black/50 hover:bg-black/80 rounded-full"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setTagInputOpen(tagInputOpen === path ? null : path)
+                    }}
+                  >
+                    <Tag className="h-4 w-4 text-white" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 bg-black/50 hover:bg-black/80 rounded-full"
+                    onClick={(e) => handleBookmark(e, path, isBookmarked)}
+                  >
+                    <Heart className={cn("h-4 w-4", isBookmarked ? "fill-primary text-primary" : "text-white")} />
+                  </Button>
+                </div>
+
+                {tagInputOpen === path && (
+                  <div className="absolute top-12 right-2 bg-background/90 p-2 rounded-lg border border-primary/20 backdrop-blur" onClick={e => e.stopPropagation()}>
+                    <Input 
+                      autoFocus
+                      placeholder="Add tag..."
+                      className="h-8 text-sm"
+                      value={newTagValue}
+                      onChange={e => setNewTagValue(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') handleAddTag(path, tags)
+                        if (e.key === 'Escape') setTagInputOpen(null)
+                      }}
+                    />
+                  </div>
+                )}
+
+                <div className="p-4" onClick={(e) => {
+                  e.stopPropagation()
+                  setLightboxIndex(idx)
+                }}>
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {tags.map(tag => (
+                      <Badge key={tag} variant="secondary" className="text-[10px] py-0 px-1.5 flex items-center gap-1">
+                        {tag}
+                        <X className="h-3 w-3 cursor-pointer hover:text-error" onClick={(e) => handleRemoveTag(e, path, tag, tags)} />
+                      </Badge>
+                    ))}
+                  </div>
+                  <Badge variant="success" className="mb-2">
+                    <ScanFace className="h-3 w-3" />
+                    Match ({score}%)
+                  </Badge>
+                  <div className="text-on-surface/60 text-xs truncate">{match.photo.filename}</div>
+                </div>
+              </div>
+              
+              {isSelected && (
+                <div className="absolute top-4 left-4">
+                  <Badge variant="success">
+                    <Check className="h-3 w-3" />
+                    SELECTED
+                  </Badge>
+                </div>
+              )}
+            </motion.div>
+          )
+        })}
+      </motion.div>
+      {matches.length > visibleCount && (
+        <div className="flex flex-col items-center gap-3 mt-8">
+          <p className="text-on-surface-variant text-sm">
+            Showing top {visibleCount} results out of {matches.length} matches.
+          </p>
+          <div className="flex gap-4">
+            <Button
+              variant="outline"
+              onClick={() => setVisibleCount(prev => prev + 100)}
+            >
+              Load More (+100)
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setVisibleCount(matches.length)}
+            >
+              Show All
+            </Button>
+          </div>
+        </div>
+      )}
+      
+      {/* Lightbox Modal */}
+      <AnimatePresence>
+        {lightboxIndex !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-sm flex items-center justify-center"
+            onClick={() => setLightboxIndex(null)}
+          >
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-4 right-4 text-white hover:bg-white/20 z-50"
+              onClick={() => setLightboxIndex(null)}
+            >
+              <X className="h-6 w-6" />
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 z-50 h-12 w-12"
+              onClick={(e) => {
+                e.stopPropagation()
+                setLightboxIndex(lightboxIndex > 0 ? lightboxIndex - 1 : matches.length - 1)
+              }}
+            >
+              <ChevronLeft className="h-8 w-8" />
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 z-50 h-12 w-12"
+              onClick={(e) => {
+                e.stopPropagation()
+                setLightboxIndex(lightboxIndex < matches.length - 1 ? lightboxIndex + 1 : 0)
+              }}
+            >
+              <ChevronRight className="h-8 w-8" />
+            </Button>
+
+            <motion.img
+              key={lightboxIndex}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              src={getImageUrl(matches[lightboxIndex].photo.filepath, false)}
+              className="max-h-[90vh] max-w-[90vw] object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+            
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 px-6 py-3 rounded-full backdrop-blur-md text-white flex gap-4 items-center" onClick={e => e.stopPropagation()}>
+              <span className="font-mono text-sm">{matches[lightboxIndex].photo.filename}</span>
+              <div className="w-px h-4 bg-white/20" />
+              <span className="text-primary font-bold">{Math.max(0, 100 - matches[lightboxIndex].distance * 50).toFixed(1)}% Match</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  )
+}

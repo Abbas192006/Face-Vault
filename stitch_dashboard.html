@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FaceVault | Professional Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-fixed-variant": "#3e3c8f",
+                    "inverse-surface": "#e0e3e5",
+                    "primary-fixed": "#e1e0ff",
+                    "on-background": "#e0e3e5",
+                    "on-tertiary-container": "#201b70",
+                    "primary-container": "#8083ff",
+                    "on-surface-variant": "#c7c4d7",
+                    "surface-container-lowest": "#0b0f10",
+                    "on-primary-container": "#0d0096",
+                    "on-secondary-fixed-variant": "#3f465c",
+                    "tertiary-fixed": "#e2dfff",
+                    "tertiary": "#c3c0ff",
+                    "on-primary-fixed-variant": "#2f2ebe",
+                    "surface-container-highest": "#323537",
+                    "surface": "#101415",
+                    "outline": "#908fa0",
+                    "surface-variant": "#323537",
+                    "on-tertiary-fixed": "#100563",
+                    "inverse-on-surface": "#2d3133",
+                    "tertiary-fixed-dim": "#c3c0ff",
+                    "on-secondary-fixed": "#131b2e",
+                    "on-tertiary": "#272377",
+                    "on-surface": "#e0e3e5",
+                    "surface-container-low": "#191c1e",
+                    "on-primary": "#1000a9",
+                    "secondary-fixed-dim": "#bec6e0",
+                    "error": "#ffb4ab",
+                    "surface-tint": "#c0c1ff",
+                    "error-container": "#93000a",
+                    "primary-fixed-dim": "#c0c1ff",
+                    "surface-dim": "#101415",
+                    "secondary-container": "#3f465c",
+                    "on-secondary": "#283044",
+                    "primary": "#c0c1ff",
+                    "background": "#101415",
+                    "on-error-container": "#ffdad6",
+                    "secondary": "#bec6e0",
+                    "outline-variant": "#464554",
+                    "surface-bright": "#363a3b",
+                    "tertiary-container": "#8987df",
+                    "on-error": "#690005",
+                    "on-secondary-container": "#adb4ce",
+                    "inverse-primary": "#494bd6",
+                    "secondary-fixed": "#dae2fd",
+                    "on-primary-fixed": "#07006c",
+                    "surface-container": "#1d2022",
+                    "surface-container-high": "#272a2c"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xl": "40px",
+                    "container-max": "1440px",
+                    "gutter": "24px",
+                    "xs": "4px",
+                    "lg": "24px",
+                    "unit": "4px",
+                    "sidebar-width": "280px",
+                    "sm": "8px",
+                    "md": "16px"
+            },
+            "fontFamily": {
+                    "body-lg": ["Inter"],
+                    "label-sm": ["Geist"],
+                    "body-md": ["Inter"],
+                    "display": ["Geist"],
+                    "headline-lg": ["Geist"],
+                    "headline-md": ["Geist"],
+                    "label-md": ["Geist"]
+            },
+            "fontSize": {
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "display": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .shimmer-border {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .shimmer-border::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent,
+                rgba(192, 193, 255, 0.1),
+                transparent
+            );
+            animation: rotate 4s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .active-dot::before {
+            content: '';
+            position: absolute;
+            left: -12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 4px;
+            background-color: #c0c1ff;
+            border-radius: 9999px;
+            box-shadow: 0 0 8px #c0c1ff;
+        }
+
+        .chart-container {
+            mask-image: linear-gradient(to right, black, black, transparent);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md overflow-hidden">
+<div class="flex h-screen w-full">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-screen w-sidebar-width bg-surface border-r border-white/10 flex flex-col p-lg gap-md z-50">
+<div class="font-headline-md text-headline-md font-bold text-on-surface mb-xl tracking-tighter">
+                FaceVault
+            </div>
+<button class="bg-primary text-on-primary py-md px-lg rounded-xl font-label-md flex items-center justify-center gap-sm mb-lg hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined">add</span>
+                New Event
+            </button>
+<nav class="flex flex-col gap-md flex-grow">
+<a class="text-primary font-label-md flex items-center gap-md relative active-dot transition-all duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                    Dashboard
+                </a>
+<a class="text-on-surface-variant font-label-md flex items-center gap-md hover:text-on-surface transition-all duration-200" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+                    History
+                </a>
+<a class="text-on-surface-variant font-label-md flex items-center gap-md hover:text-on-surface transition-all duration-200" href="#">
+<span class="material-symbols-outlined">auto_awesome</span>
+                    Recent Images
+                </a>
+<a class="text-on-surface-variant font-label-md flex items-center gap-md hover:text-on-surface transition-all duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+                    Settings
+                </a>
+</nav>
+<div class="mt-auto border-t border-white/5 pt-md flex flex-col gap-md">
+<div class="flex items-center gap-md px-xs mb-sm">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional studio portrait of a high-end event photographer with sophisticated lighting, warm tones, and a minimalist background, conveying expertise and luxury in the digital era." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlZ_Nepa9PRmQxh94k4lGOMSVxi4jSKHlpNidUb1kIdjtCp--jT99FXiqbSecEu4gsCfE6IojYcaj60BH9pylBMJGQ5w4IYSxayNksKrj5l7K6w0vZOyKTtnZUU7hIB6ZK0rDn9QhYEp_JGve3lmUecEFQMKEbfLe3QZUHEBG6mBxP5juHWrIm2whCG446IBnHTIzuA03hNX0MQ8xYfh_9TFEoSP2ICrO-SYeM7RptBWVL1XuyXvDY_HQYAOhVpBXNJN8h79DJf_w"/>
+</div>
+<div>
+<div class="font-label-md text-on-surface">Photographer</div>
+<div class="text-xs text-on-surface-variant">Elite Account</div>
+</div>
+</div>
+<a class="text-on-surface-variant font-label-md flex items-center gap-md hover:text-on-surface transition-all duration-200" href="#">
+<span class="material-symbols-outlined">help</span>
+                    Help
+                </a>
+<a class="text-on-surface-variant font-label-md flex items-center gap-md hover:text-on-surface transition-all duration-200" href="#">
+<span class="material-symbols-outlined">logout</span>
+                    Sign Out
+                </a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-sidebar-width flex-grow h-screen overflow-y-auto relative">
+<!-- Atmospheric Aura -->
+<div class="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
+<div class="max-w-container-max mx-auto px-xl py-xl">
+<!-- Header & AI Search -->
+<header class="mb-xl">
+<div class="flex justify-between items-end mb-lg">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface mb-xs">Event Dashboard</h1>
+<p class="text-on-surface-variant font-body-md">Managing 12 active event galleries with AI facial indexing.</p>
+</div>
+<div class="flex gap-md">
+<div class="glass-panel px-md py-sm rounded-full flex items-center gap-sm">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<span class="text-xs font-label-sm uppercase tracking-widest text-primary">AI System Online</span>
+</div>
+</div>
+</div>
+<div class="relative max-w-2xl">
+<input class="w-full bg-surface-container-low border border-white/10 rounded-full py-4 px-lg text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-on-surface-variant/50" placeholder="Find photos of a sunset in Greece..." type="text"/>
+<div class="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-sm">
+<span class="bg-primary/20 text-primary text-[10px] font-bold px-2 py-1 rounded uppercase tracking-tighter border border-primary/30">AI</span>
+<span class="material-symbols-outlined text-on-surface-variant">search</span>
+</div>
+</div>
+</header>
+<div class="grid grid-cols-12 gap-lg">
+<!-- Performance Chart (AI Speed) -->
+<section class="col-span-12 lg:col-span-8 glass-panel rounded-xl p-lg relative overflow-hidden group">
+<div class="flex justify-between items-start mb-lg">
+<div>
+<h3 class="font-headline-md text-on-surface">Recognition Performance</h3>
+<p class="text-label-md text-on-surface-variant">Real-time AI indexing speed across clusters</p>
+</div>
+<div class="text-right">
+<div class="text-primary font-headline-md">1.2ms</div>
+<div class="text-xs text-on-surface-variant uppercase tracking-widest">Avg Latency</div>
+</div>
+</div>
+<div class="h-48 w-full flex items-end gap-1 relative pt-4">
+<!-- Simple Animated SVG for Performance visualization -->
+
+<!-- Visual placeholder bars for UI density -->
+<div class="absolute inset-0 flex items-end justify-between px-2 pointer-events-none opacity-20">
+<div class="w-4 bg-primary rounded-t" style="height: 40%"></div>
+<div class="w-4 bg-primary rounded-t" style="height: 60%"></div>
+<div class="w-4 bg-primary rounded-t" style="height: 35%"></div>
+<div class="w-4 bg-primary rounded-t" style="height: 80%"></div>
+<div class="w-4 bg-primary rounded-t" style="height: 55%"></div>
+<div class="w-4 bg-primary rounded-t" style="height: 90%"></div>
+<div class="w-4 bg-primary rounded-t" style="height: 45%"></div>
+</div>
+</div>
+<div class="mt-md flex justify-between text-[10px] text-on-surface-variant/40 font-label-sm uppercase tracking-widest">
+<span>08:00 AM</span>
+<span>12:00 PM</span>
+<span>04:00 PM</span>
+<span>08:00 PM</span>
+</div>
+</section>
+<!-- Quick Upload Zone -->
+<section class="col-span-12 lg:col-span-4 glass-panel rounded-xl p-lg border-dashed border-2 border-primary/20 flex flex-col items-center justify-center text-center cursor-pointer hover:border-primary transition-colors group">
+<div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-md group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary text-3xl">cloud_upload</span>
+</div>
+<h3 class="font-headline-md text-on-surface mb-xs">Quick Upload</h3>
+<p class="text-on-surface-variant text-label-md">Drop RAW or JPG files to auto-assign to active event.</p>
+<div class="mt-lg flex gap-sm">
+<span class="px-3 py-1 bg-surface-container-high rounded-full text-[10px] text-on-surface-variant border border-white/5 uppercase">Max 50GB</span>
+<span class="px-3 py-1 bg-surface-container-high rounded-full text-[10px] text-on-surface-variant border border-white/5 uppercase">RAW Sync</span>
+</div>
+</section>
+<!-- Active Events Grid -->
+<div class="col-span-12 mt-lg">
+<div class="flex items-center justify-between mb-lg">
+<h2 class="font-headline-md text-on-surface">Active Events</h2>
+<button class="text-primary text-label-md flex items-center gap-xs hover:underline">
+                                View all events
+                                <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-lg">
+<!-- Event Card 1 -->
+<div class="glass-panel rounded-xl overflow-hidden group cursor-pointer hover:shadow-2xl transition-all duration-500">
+<div class="h-48 w-full relative">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A luxurious high-end wedding reception in a glass-walled conservatory at night. Twinkling fairy lights, crystal chandeliers, and sophisticated floral arrangements create a magical atmosphere. The style is cinematic with deep navy shadows and warm indigo highlights." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbWyy8tjI-jo_z2Ef5Q5G0Ud6wBI3sv3XxTo5tNgXF5MWl-EaD3yFI7ZCYUqrwbt03hgdxP6UvLR0AZ7OZY4KaGNBCnZ6kbSLJplmF15zyCucQ0Hod-TdHwSbKioJO4O6xsLpEuyzjpsBku1eed8SG3IhhokvGDlYt4lLlENUUUZ2cBktF66wuSnUdETuZ-hm0P2jzfuRS3xWh1ksI1sN_KbiqfzP1wAjwjEItMtRY5T_Si5ziKxlexwavWC6uaDwJRh2rdh4DDCQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background to-transparent opacity-60"></div>
+<div class="absolute top-md right-md">
+<div class="bg-primary px-3 py-1 rounded-full text-[10px] font-bold text-on-primary shadow-lg shadow-primary/20">LIVE</div>
+</div>
+<div class="absolute bottom-md left-md">
+<h4 class="font-headline-md text-white">The Miller Wedding</h4>
+<p class="text-xs text-white/70">Fairmont Grand Del Mar • June 12, 2024</p>
+</div>
+</div>
+<div class="p-lg">
+<div class="flex justify-between items-center mb-md">
+<div class="flex flex-col">
+<span class="text-[10px] text-on-surface-variant uppercase tracking-widest">Photos</span>
+<span class="font-headline-md text-on-surface">2,482</span>
+</div>
+<div class="text-right">
+<span class="text-[10px] text-on-surface-variant uppercase tracking-widest">AI Status</span>
+<div class="flex items-center gap-sm">
+<span class="text-primary font-bold">98%</span>
+<div class="w-16 h-1 bg-surface-container-high rounded-full overflow-hidden">
+<div class="bg-primary h-full" style="width: 98%"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="pt-md border-t border-white/5 flex justify-between items-center">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full border-2 border-surface bg-on-surface-variant"></div>
+<div class="w-6 h-6 rounded-full border-2 border-surface bg-primary/40"></div>
+<div class="w-6 h-6 rounded-full border-2 border-surface bg-secondary/40"></div>
+<div class="flex items-center justify-center w-6 h-6 rounded-full border-2 border-surface bg-surface-container-high text-[8px] font-bold text-on-surface-variant">+42</div>
+</div>
+<span class="text-xs text-on-surface-variant">342 Guest Accesses</span>
+</div>
+</div>
+</div>
+<!-- Event Card 2 -->
+<div class="glass-panel rounded-xl overflow-hidden group cursor-pointer hover:shadow-2xl transition-all duration-500">
+<div class="h-48 w-full relative">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A modern corporate gala event in a high-tech skyscraper ballroom. Sleek architectural lighting, holographic displays, and professionals in formal attire. The aesthetic is sharp, clean, and dominated by deep blues and vibrant violet accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQ-DulB_4yILtR-A1bISSimpj4Mo91syBmGxG04-Ani7XdVlQSuZdXnQQzEMlbf76brzZ6eQhia8aaNK6aUAZSLmLwuFc2pspDbTojHwmcY14yrXC_gApaTAUZMd3TwIaIgFsfkR-0MimWPTmhRwHmUhccp2ei98aEu4xndUE1hajGAWcRAjc__fAqsaT3Cr5zSQcwKqZgT0DpwsW7R2rFTyrKhOATQ8DDDMiKtP1Y6AwlIQYE75fLycuZ8QGpWaPHkyjPLN7h9nw"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background to-transparent opacity-60"></div>
+<div class="absolute top-md right-md">
+<div class="bg-surface-container-high px-3 py-1 rounded-full text-[10px] font-bold text-on-surface shadow-lg">PROCESSING</div>
+</div>
+<div class="absolute bottom-md left-md">
+<h4 class="font-headline-md text-white">Corporate Gala 2024</h4>
+<p class="text-xs text-white/70">The Glass House • May 28, 2024</p>
+</div>
+</div>
+<div class="p-lg">
+<div class="flex justify-between items-center mb-md">
+<div class="flex flex-col">
+<span class="text-[10px] text-on-surface-variant uppercase tracking-widest">Photos</span>
+<span class="font-headline-md text-on-surface">5,109</span>
+</div>
+<div class="text-right">
+<span class="text-[10px] text-on-surface-variant uppercase tracking-widest">AI Status</span>
+<div class="flex items-center gap-sm">
+<span class="text-secondary font-bold">64%</span>
+<div class="w-16 h-1 bg-surface-container-high rounded-full overflow-hidden">
+<div class="bg-secondary h-full" style="width: 64%"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="pt-md border-t border-white/5 flex justify-between items-center">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full border-2 border-surface bg-on-surface-variant"></div>
+<div class="w-6 h-6 rounded-full border-2 border-surface bg-primary/40"></div>
+<div class="flex items-center justify-center w-6 h-6 rounded-full border-2 border-surface bg-surface-container-high text-[8px] font-bold text-on-surface-variant">+150</div>
+</div>
+<span class="text-xs text-on-surface-variant">1,201 Guest Accesses</span>
+</div>
+</div>
+</div>
+<!-- Event Card 3 -->
+<div class="glass-panel rounded-xl overflow-hidden group cursor-pointer hover:shadow-2xl transition-all duration-500">
+<div class="h-48 w-full relative">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="An edgy, high-fashion runway event with dramatic spotlighting and industrial design elements. Models in avant-garde clothing, blurred motion, and intense emotional energy. Dark minimalist palette with sharp white and soft indigo lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAkc9UDWBkOFyZXQNEy_8TnUhKkNMKXeYhxyrBeGJjXGccUSmfZ_oD_CG5JtlN22fW3rAmypI6AH4wXqxj817Zm05tUtIuww_iCMGX5C3-NZzJhKpebvV-pvYFUmw04Qm4eNXJTABk9E3DcR1GKpDuI2TPSlyirnxttHVWY_ZTxq15RT3INl8bhwFqnhF2bgy-tVH4cGYRImmJsQK70v71l8zz3I6zLJE5t21qruHcK3SKt5f1vZVjtOvYx_AjQnSD0P9xPTijXjy8"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background to-transparent opacity-60"></div>
+<div class="absolute top-md right-md">
+<div class="bg-surface-container-high px-3 py-1 rounded-full text-[10px] font-bold text-on-surface shadow-lg">QUEUED</div>
+</div>
+<div class="absolute bottom-md left-md">
+<h4 class="font-headline-md text-white">Avant-Garde Runway</h4>
+<p class="text-xs text-white/70">Studio 540 • Today</p>
+</div>
+</div>
+<div class="p-lg">
+<div class="flex justify-between items-center mb-md">
+<div class="flex flex-col">
+<span class="text-[10px] text-on-surface-variant uppercase tracking-widest">Photos</span>
+<span class="font-headline-md text-on-surface">--</span>
+</div>
+<div class="text-right">
+<span class="text-[10px] text-on-surface-variant uppercase tracking-widest">AI Status</span>
+<div class="flex items-center gap-sm text-on-surface-variant/40">
+<span class="font-bold">Pending</span>
+<div class="w-16 h-1 bg-surface-container-high rounded-full overflow-hidden">
+<div class="bg-white/10 h-full w-0"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="pt-md border-t border-white/5 flex justify-between items-center">
+<div class="flex -space-x-2 opacity-30">
+<div class="w-6 h-6 rounded-full border-2 border-surface bg-on-surface-variant"></div>
+</div>
+<span class="text-xs text-on-surface-variant">0 Guest Accesses</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Floating Micro-Interaction Scripts -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Simulated real-time latency update
+            const latencyEl = document.querySelector('.text-primary.font-headline-md');
+            setInterval(() => {
+                const randomLatency = (Math.random() * (1.5 - 0.8) + 0.8).toFixed(1);
+                if (latencyEl) latencyEl.innerText = `${randomLatency}ms`;
+            }, 3000);
+
+            // Add hover sound effect logic (simulated)
+            const cards = document.querySelectorAll('.glass-panel');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', () => {
+                    card.style.transform = 'translateY(-4px)';
+                });
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = 'translateY(0)';
+                });
+            });
+        });
+    </script>
+</body></html>

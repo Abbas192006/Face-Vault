@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Event History | FaceVault Pro</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Geist:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .ai-shimmer {
+            position: relative;
+            overflow: hidden;
+        }
+        .ai-shimmer::after {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent,
+                rgba(192, 193, 255, 0.1),
+                transparent
+            );
+            transform: rotate(45deg);
+            animation: shimmer 3s infinite linear;
+        }
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed-variant": "#3e3c8f",
+                        "inverse-surface": "#e0e3e5",
+                        "primary-fixed": "#e1e0ff",
+                        "on-background": "#e0e3e5",
+                        "on-tertiary-container": "#201b70",
+                        "primary-container": "#8083ff",
+                        "on-surface-variant": "#c7c4d7",
+                        "surface-container-lowest": "#0b0f10",
+                        "on-primary-container": "#0d0096",
+                        "on-secondary-fixed-variant": "#3f465c",
+                        "tertiary-fixed": "#e2dfff",
+                        "tertiary": "#c3c0ff",
+                        "on-primary-fixed-variant": "#2f2ebe",
+                        "surface-container-highest": "#323537",
+                        "surface": "#101415",
+                        "outline": "#908fa0",
+                        "surface-variant": "#323537",
+                        "on-tertiary-fixed": "#100563",
+                        "inverse-on-surface": "#2d3133",
+                        "tertiary-fixed-dim": "#c3c0ff",
+                        "on-secondary-fixed": "#131b2e",
+                        "on-tertiary": "#272377",
+                        "on-surface": "#e0e3e5",
+                        "surface-container-low": "#191c1e",
+                        "on-primary": "#1000a9",
+                        "secondary-fixed-dim": "#bec6e0",
+                        "error": "#ffb4ab",
+                        "surface-tint": "#c0c1ff",
+                        "error-container": "#93000a",
+                        "primary-fixed-dim": "#c0c1ff",
+                        "surface-dim": "#101415",
+                        "secondary-container": "#3f465c",
+                        "on-secondary": "#283044",
+                        "primary": "#c0c1ff",
+                        "background": "#101415",
+                        "on-error-container": "#ffdad6",
+                        "secondary": "#bec6e0",
+                        "outline-variant": "#464554",
+                        "surface-bright": "#363a3b",
+                        "tertiary-container": "#8987df",
+                        "on-error": "#690005",
+                        "on-secondary-container": "#adb4ce",
+                        "inverse-primary": "#494bd6",
+                        "secondary-fixed": "#dae2fd",
+                        "on-primary-fixed": "#07006c",
+                        "surface-container": "#1d2022",
+                        "surface-container-high": "#272a2c"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xl": "40px",
+                        "container-max": "1440px",
+                        "gutter": "24px",
+                        "xs": "4px",
+                        "lg": "24px",
+                        "unit": "4px",
+                        "sidebar-width": "280px",
+                        "sm": "8px",
+                        "md": "16px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "label-sm": ["Geist"],
+                        "body-md": ["Inter"],
+                        "display": ["Geist"],
+                        "headline-lg": ["Geist"],
+                        "headline-md": ["Geist"],
+                        "label-md": ["Geist"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "display": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex overflow-hidden">
+<!-- SideNavBar -->
+<aside class="bg-surface fixed left-0 top-0 h-screen w-sidebar-width border-r border-white/10 flex flex-col h-full p-lg gap-md z-40">
+<div class="mb-xl">
+<h1 class="font-headline-md text-headline-md font-bold text-on-surface tracking-tighter">FaceVault Pro</h1>
+<div class="flex items-center gap-md mt-md">
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center border border-white/10 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional studio portrait of a photographer in a high-tech editing bay. The lighting is Moody with indigo and violet highlights reflecting off sleek hardware. The aesthetic is clean, professional, and sophisticated, matching the computational elegance of a high-end AI tool." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwLOv8-3H5RuKXMeB-q-7HRmn2HfniI7WUXu4LdPwjTSkRSQ3uy7ENHJNTsAVvmoEsKl8SzTXF8YB8cVXUobqFfjMvBynsWGYHYSvsx7sUFCARMoOfwTjMqGyfmBGuYom1hk0jy3Uw5RofACvlmME147yCIMsgVdyrLj8ihxGUYi4bgPfNpG_XPkRMAJXVZr1fJunHNvno6Lnh2tTCNvDwF6Mnyt8AvzVgzd9WCFFFIfoB_nPjs80YIjjqFGDv7DHyL0xFqta0Avo"/>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Photographer Profile</p>
+<p class="text-xs text-on-surface-variant">Elite Account</p>
+</div>
+</div>
+</div>
+<button class="bg-primary text-on-primary py-sm px-md rounded-lg font-label-md text-label-md flex items-center justify-center gap-sm hover:opacity-90 transition-opacity mb-lg">
+<span class="material-symbols-outlined text-[20px]">add</span>
+            New Event
+        </button>
+<nav class="flex-1 space-y-sm">
+<a class="text-on-surface-variant flex items-center gap-md font-label-md text-label-md p-sm rounded-lg hover:text-on-surface transition-all duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                Dashboard
+            </a>
+<!-- Active State: History -->
+<a class="text-primary flex items-center gap-md font-label-md text-label-md p-sm rounded-lg relative before:content-[''] before:absolute before:-left-md before:w-1 before:h-1 before:bg-primary before:rounded-full" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+                History
+            </a>
+<a class="text-on-surface-variant flex items-center gap-md font-label-md text-label-md p-sm rounded-lg hover:text-on-surface transition-all duration-200" href="#">
+<span class="material-symbols-outlined">auto_awesome</span>
+                Recent Images
+            </a>
+<a class="text-on-surface-variant flex items-center gap-md font-label-md text-label-md p-sm rounded-lg hover:text-on-surface transition-all duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+                Settings
+            </a>
+</nav>
+<div class="pt-lg border-t border-white/10 space-y-sm">
+<a class="text-on-surface-variant flex items-center gap-md font-label-md text-label-md p-sm hover:text-on-surface transition-all duration-200" href="#">
+<span class="material-symbols-outlined">help</span>
+                Help
+            </a>
+<a class="text-on-surface-variant flex items-center gap-md font-label-md text-label-md p-sm hover:text-on-surface transition-all duration-200" href="#">
+<span class="material-symbols-outlined">logout</span>
+                Sign Out
+            </a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 ml-[280px] h-screen overflow-y-auto custom-scrollbar bg-background">
+<!-- Sticky Header/Search Area -->
+<header class="sticky top-0 z-30 bg-background/80 backdrop-blur-xl px-xl pt-xl pb-md">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-md mb-xl">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Archive History</h2>
+<p class="text-on-surface-variant mt-xs">Manage and re-index your cataloged photography events.</p>
+</div>
+<div class="flex items-center gap-sm">
+<button class="flex items-center gap-sm px-md py-sm bg-surface-container rounded-lg border border-white/10 text-on-surface hover:bg-surface-container-high transition-colors text-label-md font-label-md">
+<span class="material-symbols-outlined text-[20px]">file_download</span>
+                        Export
+                    </button>
+<button class="flex items-center gap-sm px-md py-sm bg-surface-container rounded-lg border border-white/10 text-on-surface hover:bg-surface-container-high transition-colors text-label-md font-label-md">
+<span class="material-symbols-outlined text-[20px]">refresh</span>
+                        Re-index
+                    </button>
+<button class="flex items-center gap-sm px-md py-sm bg-error-container/20 text-error rounded-lg border border-error/20 hover:bg-error-container/30 transition-colors text-label-md font-label-md">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+                        Delete Selected
+                    </button>
+</div>
+</div>
+<!-- AI-Powered Search & Filters -->
+<div class="flex flex-col lg:flex-row gap-md items-stretch lg:items-center glass-card p-md rounded-xl">
+<div class="relative flex-1 group">
+<span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-primary">search</span>
+<input class="w-full bg-surface-container-low border border-white/10 rounded-lg py-3 pl-12 pr-12 text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-body-md" placeholder="Find photos of a sunset in Greece or search client names..." type="text"/>
+<div class="absolute right-md top-1/2 -translate-y-1/2 flex items-center gap-sm pointer-events-none">
+<span class="px-2 py-0.5 bg-primary-container text-on-primary-container text-[10px] rounded font-bold uppercase tracking-wider">AI Search</span>
+</div>
+</div>
+<div class="flex flex-wrap items-center gap-md">
+<div class="flex items-center gap-sm">
+<span class="text-on-surface-variant text-label-md">Type:</span>
+<select class="bg-surface-container-high border border-white/10 rounded-lg px-md py-2 text-on-surface text-label-md focus:outline-none focus:ring-2 focus:ring-primary/50">
+<option>All Events</option>
+<option>Wedding</option>
+<option>Corporate</option>
+<option>Portrait</option>
+</select>
+</div>
+<div class="flex items-center gap-sm">
+<span class="text-on-surface-variant text-label-md">Date Range:</span>
+<div class="flex items-center gap-xs bg-surface-container-high border border-white/10 rounded-lg px-md py-2">
+<input class="bg-transparent border-none p-0 text-on-surface text-label-md focus:ring-0" type="date"/>
+<span class="text-on-surface-variant mx-1">→</span>
+<input class="bg-transparent border-none p-0 text-on-surface text-label-md focus:ring-0" type="date"/>
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<section class="px-xl pb-xl">
+<!-- Table Header -->
+<div class="grid grid-cols-12 gap-gutter px-md py-sm border-b border-white/10 text-on-surface-variant font-label-md text-label-sm uppercase tracking-widest mb-md">
+<div class="col-span-1 flex items-center"><input class="rounded bg-surface-container border-white/20 text-primary focus:ring-primary" type="checkbox"/></div>
+<div class="col-span-4">Event &amp; Client</div>
+<div class="col-span-2">Type</div>
+<div class="col-span-2 text-center">Images</div>
+<div class="col-span-2">Date Indexed</div>
+<div class="col-span-1 text-right">Status</div>
+</div>
+<!-- Event Rows -->
+<div class="space-y-md">
+<!-- Row 1 -->
+<div class="grid grid-cols-12 gap-gutter glass-card p-md rounded-xl hover:bg-white/5 transition-colors cursor-pointer items-center group">
+<div class="col-span-1 flex items-center"><input class="rounded bg-surface-container border-white/20 text-primary focus:ring-primary" type="checkbox"/></div>
+<div class="col-span-4 flex items-center gap-md">
+<div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container-high border border-white/10">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="A cinematic wide shot of a sunset wedding on a cliffside in Santorini, Greece. The lighting is warm and golden-hour perfect, casting long shadows. Deep navy blue ocean contrast with the white-washed architecture, embodying the professional and elegant brand aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-nUsFNw3sSUTq1BRO8vcHBVKxxaqI4eGexGsw5K3LnkLaLjR483XrEtPsQGFRaR9NCmayOxwXAuvCnatp1sxs5RiDTHsedJQ2Oa8q0MrIZUQ-myNYdTEN3jw2M90HNZ3jGHgRmIUNOTcgVUSCGQ2hmUgA60ZkPUj1ELYwiiH_XID3gBd1hALxL8F6oXYpunxjV7ppZcY-ynpDwv1Mti60Caxuyw6P1MY-qYgQ2OjkrVXubLUTKFrmGc2mGYeRUICAb0nGZxtoXM0"/>
+</div>
+<div>
+<p class="font-label-md text-on-surface">Elena &amp; Marcus Wedding</p>
+<p class="text-xs text-on-surface-variant">Santorini, Greece</p>
+</div>
+</div>
+<div class="col-span-2">
+<span class="px-3 py-1 bg-tertiary-container/20 text-tertiary rounded-full text-[11px] font-bold">WEDDING</span>
+</div>
+<div class="col-span-2 text-center text-on-surface">1,248</div>
+<div class="col-span-2 text-on-surface-variant text-label-md">Oct 24, 2023</div>
+<div class="col-span-1 flex justify-end">
+<span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.5)]"></span>
+</div>
+</div>
+<!-- Row 2 (Processing State) -->
+<div class="grid grid-cols-12 gap-gutter glass-card p-md rounded-xl hover:bg-white/5 transition-colors cursor-pointer items-center group ai-shimmer border-primary/30">
+<div class="col-span-1 flex items-center"><input class="rounded bg-surface-container border-white/20 text-primary focus:ring-primary" type="checkbox"/></div>
+<div class="col-span-4 flex items-center gap-md">
+<div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container-high border border-white/10">
+<img class="w-full h-full object-cover" data-alt="High-contrast corporate headshot of a diverse team in a glass-walled conference room. The atmosphere is sharp, professional, and reflects luxury software environments with subtle indigo glows and cool-toned lighting. Precise details and microscopic clarity suggest high-performance AI processing." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKzft4T0KrvRq2Ew9FU4y600xzsEbxMhJyqatKKC5TOANuIObS1AwUWMZNk4YvN741PNC7aSMw5NCS1rDMYoudDwY2eY7HAYf69h-W6nboAkCEu-gOTfSDM_HltWhMK55S_7oQDs4YJfV9DM6lQ99DpHp9sIRG--kad0gorTm91C4qFsiNmoaUHl74UYlKmDiPnjT0K_CoAjjmYsDDCzb9Ug2afS5OUFR6IoyNdvxDiLi0mRR5A-xXsW4MTxXZZAU9e7AhemMXwto"/>
+</div>
+<div>
+<p class="font-label-md text-on-surface">Tech Summit 2023</p>
+<p class="text-xs text-on-surface-variant">London Hub</p>
+</div>
+</div>
+<div class="col-span-2">
+<span class="px-3 py-1 bg-primary-container/20 text-primary rounded-full text-[11px] font-bold">CORPORATE</span>
+</div>
+<div class="col-span-2 text-center text-on-surface">3,502</div>
+<div class="col-span-2 text-on-surface-variant text-label-md">Today, 14:20</div>
+<div class="col-span-1 flex justify-end">
+<div class="flex items-center gap-1">
+<div class="w-1 h-1 bg-primary rounded-full animate-bounce"></div>
+<div class="w-1 h-1 bg-primary rounded-full animate-bounce [animation-delay:0.2s]"></div>
+</div></div></div></div></section></main></body></html>

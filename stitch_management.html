@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FaceVault | AI-Powered Event Photography</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Geist:wght@400;500;600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .shimmer-border {
+            position: relative;
+            overflow: hidden;
+        }
+        .shimmer-border::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(192, 193, 255, 0.1), transparent);
+            transform: rotate(45deg);
+            animation: shimmer 4s infinite;
+        }
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+        .indigo-glow {
+            box-shadow: 0px 10px 30px rgba(99, 102, 241, 0.15);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-tertiary-fixed-variant": "#3e3c8f",
+                      "inverse-surface": "#e0e3e5",
+                      "primary-fixed": "#e1e0ff",
+                      "on-background": "#e0e3e5",
+                      "on-tertiary-container": "#201b70",
+                      "primary-container": "#8083ff",
+                      "on-surface-variant": "#c7c4d7",
+                      "surface-container-lowest": "#0b0f10",
+                      "on-primary-container": "#0d0096",
+                      "on-secondary-fixed-variant": "#3f465c",
+                      "tertiary-fixed": "#e2dfff",
+                      "tertiary": "#c3c0ff",
+                      "on-primary-fixed-variant": "#2f2ebe",
+                      "surface-container-highest": "#323537",
+                      "surface": "#101415",
+                      "outline": "#908fa0",
+                      "surface-variant": "#323537",
+                      "on-tertiary-fixed": "#100563",
+                      "inverse-on-surface": "#2d3133",
+                      "tertiary-fixed-dim": "#c3c0ff",
+                      "on-secondary-fixed": "#131b2e",
+                      "on-tertiary": "#272377",
+                      "on-surface": "#e0e3e5",
+                      "surface-container-low": "#191c1e",
+                      "on-primary": "#1000a9",
+                      "secondary-fixed-dim": "#bec6e0",
+                      "error": "#ffb4ab",
+                      "surface-tint": "#c0c1ff",
+                      "error-container": "#93000a",
+                      "primary-fixed-dim": "#c0c1ff",
+                      "surface-dim": "#101415",
+                      "secondary-container": "#3f465c",
+                      "on-secondary": "#283044",
+                      "primary": "#c0c1ff",
+                      "background": "#101415",
+                      "on-error-container": "#ffdad6",
+                      "secondary": "#bec6e0",
+                      "outline-variant": "#464554",
+                      "surface-bright": "#363a3b",
+                      "tertiary-container": "#8987df",
+                      "on-error": "#690005",
+                      "on-secondary-container": "#adb4ce",
+                      "inverse-primary": "#494bd6",
+                      "secondary-fixed": "#dae2fd",
+                      "on-primary-fixed": "#07006c",
+                      "surface-container": "#1d2022",
+                      "surface-container-high": "#272a2c"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "xl": "40px",
+                      "container-max": "1440px",
+                      "gutter": "24px",
+                      "xs": "4px",
+                      "lg": "24px",
+                      "unit": "4px",
+                      "sidebar-width": "280px",
+                      "sm": "8px",
+                      "md": "16px"
+              },
+              "fontFamily": {
+                      "body-lg": ["Inter"],
+                      "label-sm": ["Geist"],
+                      "body-md": ["Inter"],
+                      "display": ["Geist"],
+                      "headline-lg": ["Geist"],
+                      "headline-md": ["Geist"],
+                      "headline-lg-mobile": ["Geist"],
+                      "label-md": ["Geist"]
+              },
+              "fontSize": {
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "display": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}]
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background font-body-md overflow-x-hidden">
+<!-- TopNavBar -->
+<header class="bg-surface/70 dark:bg-surface/70 backdrop-blur-xl border-b border-white/10 docked full-width top-0 sticky z-50">
+<nav class="flex justify-between items-center px-xl py-md w-full max-w-container-max mx-auto">
+<div class="font-headline-md text-headline-md font-bold text-on-surface tracking-tighter">FaceVault</div>
+<div class="hidden md:flex items-center gap-xl">
+<a class="text-primary font-bold border-b-2 border-primary pb-1 font-body-md text-body-md" href="#">Features</a>
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200 font-body-md text-body-md" href="#">Pricing</a>
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200 font-body-md text-body-md" href="#">Enterprise</a>
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200 font-body-md text-body-md" href="#">Support</a>
+</div>
+<div class="flex items-center gap-md">
+<button class="hidden md:block text-on-surface-variant font-medium hover:text-primary transition-all font-label-md text-label-md">Login</button>
+<button class="bg-primary text-on-primary px-lg py-sm rounded-lg font-bold hover:opacity-80 transition-opacity font-label-md text-label-md">Get Started</button>
+</div>
+</nav>
+</header>
+<main>
+<!-- Hero Section -->
+<section class="relative h-[921px] flex items-center justify-center overflow-hidden">
+<div class="absolute inset-0 z-0" data-alt="A cinematic, high-end wedding photography shot captured at dusk. The scene features a newlywed couple dancing under soft, warm outdoor lights at a luxury estate. The lighting is sophisticated, with a deep navy sky transitioning into warm golden hour glows. The overall style is professional, polished, and evocative of a high-end luxury event service." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuACWFjcSKwoeqmDz3L5gqT909qaM9NgJ63FZJALugG_fQLm04yNE24nRKXcjsJfmO4wGPfp14HF2ToKxKlFMcGHHTWhnestRzwNr2i8QljFnnySHj6BYqJ6cw2pwEu2IPyNhyfAGQXOzE-937WNbhZdehQ4hVfKgaRfOK56MtgJY6Xmc7iwgaHNA5XnJDUuH_aIwZtEAGRtYfet418myHs-snEuZqbxCvOlk84XJ3-jmT3KbV6DuWSZQSo9f9ST5HgALKj2loA4J_A')">
+<div class="absolute inset-0 bg-gradient-to-b from-background/20 via-background/60 to-background"></div>
+</div>
+<div class="relative z-10 w-full max-w-4xl px-md text-center">
+<div class="glass-card p-xl rounded-xl border border-white/20 inline-block mb-lg">
+<h1 class="font-display text-display text-on-surface mb-md">
+                        The Future of Event <br class="hidden md:block"/> Photography is Here.
+                    </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto mb-xl">
+                        AI-powered face recognition for weddings and events. Guests find their photos in seconds.
+                    </p>
+<div class="flex flex-col sm:flex-row gap-md justify-center">
+<button class="bg-primary text-on-primary px-xl py-md rounded-lg font-bold text-lg hover:scale-105 transition-transform indigo-glow">
+                            Start Your Free Trial
+                        </button>
+<button class="glass-card border-white/10 text-on-surface px-xl py-md rounded-lg font-bold text-lg hover:bg-white/10 transition-colors">
+                            Watch Demo
+                        </button>
+</div>
+</div>
+</div>
+<div class="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce">
+<span class="material-symbols-outlined text-primary text-4xl">keyboard_double_arrow_down</span>
+</div>
+</section>
+<!-- Features Bento Grid -->
+<section class="py-xl px-xl max-w-container-max mx-auto">
+<div class="text-center mb-xl">
+<h2 class="font-headline-lg text-headline-lg mb-sm">Unmatched Technical Precision</h2>
+<p class="text-on-surface-variant font-body-md max-w-xl mx-auto">Powered by next-generation neural networks for instant delivery.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-lg">
+<!-- Feature 1 -->
+<div class="md:col-span-8 glass-card p-lg rounded-xl overflow-hidden group">
+<div class="flex flex-col md:flex-row gap-lg items-center">
+<div class="flex-1">
+<span class="text-primary font-bold text-xs tracking-widest uppercase mb-xs block">Intelligence</span>
+<h3 class="font-headline-md text-headline-md mb-md">Real-Time Face Recognition</h3>
+<p class="text-on-surface-variant mb-md">Our AI indexes thousands of faces in milliseconds, ensuring every guest finds their perfect moments without scrolling through endless galleries.</p>
+<div class="flex gap-sm">
+<span class="bg-primary/20 text-primary px-sm py-xs rounded text-xs font-bold">99.9% Accuracy</span>
+<span class="bg-primary/20 text-primary px-sm py-xs rounded text-xs font-bold">Encrypted</span>
+</div>
+</div>
+<div class="w-full md:w-1/2 h-64 rounded-lg overflow-hidden border border-white/10 bg-surface-container shadow-2xl">
+<div class="w-full h-full relative" data-alt="A high-tech digital interface showing a portrait of a guest with a subtle AI facial mesh overlay. Delicate lines and nodes track facial features in an elegant, non-intrusive way. The background is a blurred high-end event space, colored in deep indigo and violet tones to match the computational elegance aesthetic." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBTOFTA1cxCFeuEL5Mr1lt9TpxD2k-SAuVgSTSDcCYrqyejKXHTmGSyzNzCI6xHivOxyitd22o4FVEl4b1c3BWIhLJ_jNnA7Ff7sywF2DneKsjwgeJXuR9ztuvjK-K9cTzICO7VE_zeuG0W4D9bUezhwApWtJ5Hwkwt7b6tJxHnpRJcU554XE6_L4mAjorAo4zxuFeXbwyANLb-qEN5iC_JkycMjOu8vNgPkrPN924ZVaH4jmxIJz-fAZux4Q45hXVTLyT_75lvh-s')"></div>
+</div>
+</div>
+</div>
+<!-- Feature 2 -->
+<div class="md:col-span-4 glass-card p-lg rounded-xl flex flex-col justify-between">
+<div>
+<div class="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center text-primary mb-md">
+<span class="material-symbols-outlined">security</span>
+</div>
+<h3 class="font-headline-md text-headline-md mb-sm">Local Processing</h3>
+<p class="text-on-surface-variant">Security is paramount. All facial data is processed on edge-secure servers, keeping your guest's privacy intact.</p>
+</div>
+<div class="mt-lg pt-lg border-t border-white/10">
+<a class="text-primary font-bold flex items-center gap-xs" href="#">Learn More <span class="material-symbols-outlined">arrow_forward</span></a>
+</div>
+</div>
+<!-- Feature 3 -->
+<div class="md:col-span-4 glass-card p-lg rounded-xl flex flex-col justify-between">
+<div>
+<div class="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center text-primary mb-md">
+<span class="material-symbols-outlined">filter_center_focus</span>
+</div>
+<h3 class="font-headline-md text-headline-md mb-sm">Object Detection</h3>
+<p class="text-on-surface-variant">Automatically categorize shots by context: Ceremony, Reception, Speeches, or Details like rings and decor.</p>
+</div>
+<div class="mt-lg pt-lg border-t border-white/10">
+<a class="text-primary font-bold flex items-center gap-xs" href="#">Explore AI <span class="material-symbols-outlined">arrow_forward</span></a>
+</div>
+</div>
+<!-- Feature 4 -->
+<div class="md:col-span-8 glass-card p-lg rounded-xl bg-gradient-to-r from-surface-container-high to-surface-container relative overflow-hidden">
+<div class="relative z-10">
+<h3 class="font-headline-md text-headline-md mb-md">Natural Language Search</h3>
+<p class="text-on-surface-variant max-w-lg mb-lg">Ask FaceVault anything: "Find photos of the bride's father during the toast" or "Show me all photos with a sunset background."</p>
+<div class="glass-card bg-black/40 border-white/10 p-md rounded-full flex items-center gap-md">
+<span class="material-symbols-outlined text-primary">auto_awesome</span>
+<span class="text-on-surface-variant italic">"Find photos of the mother of the bride crying..."</span>
+<div class="ml-auto bg-primary text-on-primary px-md py-xs rounded-full text-xs font-bold">AI Active</div>
+</div>
+</div>
+<div class="absolute right-0 top-0 w-1/3 h-full opacity-10 pointer-events-none">
+<span class="material-symbols-outlined text-[200px]">manage_search</span>
+</div>
+</div>
+</div>
+</section>
+<!-- How It Works -->
+<section class="py-xl bg-surface-container-lowest border-y border-white/5">
+<div class="max-w-container-max mx-auto px-xl">
+<div class="text-center mb-xl">
+<h2 class="font-headline-lg text-headline-lg mb-sm">The Workflow of the Future</h2>
+<p class="text-on-surface-variant font-body-md max-w-xl mx-auto">Three simple steps to revolutionize your delivery process.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-xl">
+<div class="text-center group">
+<div class="w-20 h-20 rounded-full bg-surface-container border border-white/10 flex items-center justify-center mx-auto mb-lg group-hover:scale-110 transition-transform shimmer-border">
+<span class="material-symbols-outlined text-primary text-3xl">cloud_upload</span>
+</div>
+<h4 class="font-headline-md text-headline-md mb-sm">1. Upload</h4>
+<p class="text-on-surface-variant">Dump your entire event catalog. Our lightning-fast servers handle thousands of RAW or JPEG files instantly.</p>
+</div>
+<div class="text-center group">
+<div class="w-20 h-20 rounded-full bg-surface-container border border-white/10 flex items-center justify-center mx-auto mb-lg group-hover:scale-110 transition-transform shimmer-border">
+<span class="material-symbols-outlined text-primary text-3xl">psychology</span>
+</div>
+<h4 class="font-headline-md text-headline-md mb-sm">2. AI Groups</h4>
+<p class="text-on-surface-variant">The AI engine analyzes faces, objects, and lighting to automatically categorize every single image.</p>
+</div>
+<div class="text-center group">
+<div class="w-20 h-20 rounded-full bg-surface-container border border-white/10 flex items-center justify-center mx-auto mb-lg group-hover:scale-110 transition-transform shimmer-border">
+<span class="material-symbols-outlined text-primary text-3xl">person_search</span>
+</div>
+<h4 class="font-headline-md text-headline-md mb-sm">3. Guest Finds</h4>
+<p class="text-on-surface-variant">Guests scan a QR code, snap a selfie, and instantly see every photo they appear in. No more searching.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Pricing Section -->
+<section class="py-xl px-xl max-w-container-max mx-auto">
+<div class="text-center mb-xl">
+<h2 class="font-headline-lg text-headline-lg mb-sm">Simple, Scalable Pricing</h2>
+<p class="text-on-surface-variant font-body-md">Choose the plan that fits your studio's volume.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-lg">
+<!-- Basic -->
+<div class="glass-card p-xl rounded-xl border border-white/5 flex flex-col">
+<span class="text-on-surface-variant font-bold text-xs uppercase mb-md">Solo Pro</span>
+<div class="flex items-baseline gap-xs mb-md">
+<span class="text-4xl font-bold">$49</span>
+<span class="text-on-surface-variant">/month</span>
+</div>
+<ul class="space-y-md mb-xl flex-1">
+<li class="flex items-center gap-md text-on-surface-variant">
+<span class="material-symbols-outlined text-primary text-sm">check_circle</span> 5 Events Per Month
+                        </li>
+<li class="flex items-center gap-md text-on-surface-variant">
+<span class="material-symbols-outlined text-primary text-sm">check_circle</span> Unlimited Face Matching
+                        </li>
+<li class="flex items-center gap-md text-on-surface-variant">
+<span class="material-symbols-outlined text-primary text-sm">check_circle</span> Basic QR Integration
+                        </li>
+</ul>
+<button class="w-full py-md border border-white/10 rounded-lg hover:bg-white/5 transition-colors font-bold">Select Plan</button>
+</div>
+<!-- Featured -->
+<div class="glass-card p-xl rounded-xl border-2 border-primary relative flex flex-col scale-105 indigo-glow shadow-primary/10">
+<div class="absolute top-0 right-xl -translate-y-1/2 bg-primary text-on-primary px-lg py-xs rounded-full text-xs font-bold">Most Popular</div>
+<span class="text-primary font-bold text-xs uppercase mb-md">Studio Elite</span>
+<div class="flex items-baseline gap-xs mb-md">
+<span class="text-4xl font-bold">$129</span>
+<span class="text-on-surface-variant">/month</span>
+</div>
+<ul class="space-y-md mb-xl flex-1">
+<li class="flex items-center gap-md text-on-surface">
+<span class="material-symbols-outlined text-primary text-sm">check_circle</span> Unlimited Events
+                        </li>
+<li class="flex items-center gap-md text-on-surface">
+<span class="material-symbols-outlined text-primary text-sm">check_circle</span> Custom Branding
+                        </li>
+<li class="flex items-center gap-md text-on-surface">
+<span class="material-symbols-outlined text-primary text-sm">check_circle</span> Natural Language Search
+                        </li>
+<li class="flex items-center gap-md text-on-surface">
+<span class="material-symbols-outlined text-primary text-sm">check_circle</span> Priority AI Processing
+                        </li>
+</ul>
+<button class="w-full py-md bg-primary text-on-primary rounded-lg hover:opacity-90 transition-opacity font-bold">Get Started Now</button>
+</div>
+<!-- Agency -->
+<div class="glass-card p-xl rounded-xl border border-white/5 flex flex-col">
+<span class="text-on-surface-variant font-bold text-xs uppercase mb-md">Enterprise</span>
+<div class="flex items-baseline gap-xs mb-md">
+<span class="text-4xl font-bold">Custom</span>
+</div>
+<p class="text-on-surface-variant mb-xl">For large agencies and stadium-level event coordinators.</p>
+<ul class="space-y-md mb-xl flex-1">
+<li class="flex items-center gap-md text-on-surface-variant">
+<span class="material-symbols-outlined text-primary text-sm">check_circle</span> Dedicated Server
+                        </li>
+<li class="flex items-center gap-md text-on-surface-variant">
+<span class="material-symbols-outlined text-primary text-sm">check_circle</span> White-label Mobile App
+                        </li>
+<li class="flex items-center gap-md text-on-surface-variant">
+<span class="material-symbols-outlined text-primary text-sm">check_circle</span> 24/7 Concierge Support
+                        </li>
+</ul>
+<button class="w-full py-md border border-white/10 rounded-lg hover:bg-white/5 transition-colors font-bold">Contact Sales</button>
+</div>
+</div>
+</section>
+<!-- Final CTA -->
+<section class="py-xl mb-xl px-md">
+<div class="max-w-4xl mx-auto glass-card p-xl rounded-3xl text-center relative overflow-hidden">
+
+<div class="relative z-10">
+<h2 class="font-display text-headline-lg mb-md">Ready to Change How You Deliver?</h2>
+<p class="text-on-surface-variant font-body-lg mb-xl max-w-xl mx-auto">Join 2,000+ professional photographers who have automated their guest experience.</p>
+<div class="flex flex-col sm:flex-row gap-md justify-center">
+<button class="bg-primary text-on-primary px-xl py-md rounded-lg font-bold text-lg indigo-glow">Start Your Free Trial</button>
+<button class="text-on-surface px-xl py-md rounded-lg font-bold text-lg">Book a Demo</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<footer class="bg-surface-container-lowest py-xl border-t border-white/10">
+<div class="max-w-container-max mx-auto px-xl grid grid-cols-2 md:grid-cols-4 gap-xl">
+<div>
+<div class="font-headline-md text-headline-md font-bold text-on-surface tracking-tighter mb-md">FaceVault</div>
+<p class="text-on-surface-variant text-sm">The standard in AI-powered event delivery solutions.</p>
+</div>
+<div>
+<h5 class="font-bold mb-md">Product</h5>
+<ul class="space-y-sm text-on-surface-variant text-sm">
+<li><a class="hover:text-primary transition-colors" href="#">Features</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Pricing</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Security</a></li>
+</ul>
+</div>
+<div>
+<h5 class="font-bold mb-md">Company</h5>
+<ul class="space-y-sm text-on-surface-variant text-sm">
+<li><a class="hover:text-primary transition-colors" href="#">About Us</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Blog</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Careers</a></li>
+</ul>
+</div>
+<div>
+<h5 class="font-bold mb-md">Legal</h5>
+<ul class="space-y-sm text-on-surface-variant text-sm">
+<li><a class="hover:text-primary transition-colors" href="#">Privacy Policy</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Terms of Service</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Data Processing</a></li>
+</ul>
+</div>
+</div>
+<div class="max-w-container-max mx-auto px-xl mt-xl pt-xl border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-md">
+<p class="text-on-surface-variant text-xs">© 2024 FaceVault AI. All rights reserved.</p>
+<div class="flex gap-md">
+<a class="text-on-surface-variant hover:text-primary" href="#"><span class="material-symbols-outlined">brand_awareness</span></a>
+<a class="text-on-surface-variant hover:text-primary" href="#"><span class="material-symbols-outlined">public</span></a>
+<a class="text-on-surface-variant hover:text-primary" href="#"><span class="material-symbols-outlined">alternate_email</span></a>
+</div>
+</div>
+</footer>
+<script>
+        // Subtle hover effects for cards
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('mousemove', e => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+    </script>
+</body></html>

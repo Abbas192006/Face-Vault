@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Recent Images | FaceVault Pro</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .masonry-grid {
+            columns: 1;
+        }
+        @media (min-width: 768px) { .masonry-grid { columns: 2; } }
+        @media (min-width: 1280px) { .masonry-grid { columns: 3; } }
+        @media (min-width: 1536px) { .masonry-grid { columns: 4; } }
+
+        .image-hover-overlay {
+            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .image-card:hover .image-hover-overlay {
+            opacity: 1;
+        }
+        .shimmer-border {
+            position: relative;
+            overflow: hidden;
+        }
+        .shimmer-border::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, #c0c1ff, transparent 30%);
+            animation: rotate 4s linear infinite;
+            z-index: -1;
+        }
+        @keyframes rotate {
+            100% { transform: rotate(360deg); }
+        }
+        .active-dot::before {
+            content: '';
+            position: absolute;
+            left: -16px;
+            width: 4px;
+            height: 4px;
+            background-color: #c0c1ff;
+            border-radius: 9999px;
+            box-shadow: 0 0 8px #c0c1ff;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-tertiary-fixed-variant": "#3e3c8f",
+                      "inverse-surface": "#e0e3e5",
+                      "primary-fixed": "#e1e0ff",
+                      "on-background": "#e0e3e5",
+                      "on-tertiary-container": "#201b70",
+                      "primary-container": "#8083ff",
+                      "on-surface-variant": "#c7c4d7",
+                      "surface-container-lowest": "#0b0f10",
+                      "on-primary-container": "#0d0096",
+                      "on-secondary-fixed-variant": "#3f465c",
+                      "tertiary-fixed": "#e2dfff",
+                      "tertiary": "#c3c0ff",
+                      "on-primary-fixed-variant": "#2f2ebe",
+                      "surface-container-highest": "#323537",
+                      "surface": "#101415",
+                      "outline": "#908fa0",
+                      "surface-variant": "#323537",
+                      "on-tertiary-fixed": "#100563",
+                      "inverse-on-surface": "#2d3133",
+                      "tertiary-fixed-dim": "#c3c0ff",
+                      "on-secondary-fixed": "#131b2e",
+                      "on-tertiary": "#272377",
+                      "on-surface": "#e0e3e5",
+                      "surface-container-low": "#191c1e",
+                      "on-primary": "#1000a9",
+                      "secondary-fixed-dim": "#bec6e0",
+                      "error": "#ffb4ab",
+                      "surface-tint": "#c0c1ff",
+                      "error-container": "#93000a",
+                      "primary-fixed-dim": "#c0c1ff",
+                      "surface-dim": "#101415",
+                      "secondary-container": "#3f465c",
+                      "on-secondary": "#283044",
+                      "primary": "#c0c1ff",
+                      "background": "#101415",
+                      "on-error-container": "#ffdad6",
+                      "secondary": "#bec6e0",
+                      "outline-variant": "#464554",
+                      "surface-bright": "#363a3b",
+                      "tertiary-container": "#8987df",
+                      "on-error": "#690005",
+                      "on-secondary-container": "#adb4ce",
+                      "inverse-primary": "#494bd6",
+                      "secondary-fixed": "#dae2fd",
+                      "on-primary-fixed": "#07006c",
+                      "surface-container": "#1d2022",
+                      "surface-container-high": "#272a2c"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "xl": "40px",
+                      "container-max": "1440px",
+                      "gutter": "24px",
+                      "xs": "4px",
+                      "lg": "24px",
+                      "unit": "4px",
+                      "sidebar-width": "280px",
+                      "sm": "8px",
+                      "md": "16px"
+              },
+              "fontFamily": {
+                      "body-lg": ["Inter"],
+                      "label-sm": ["Geist"],
+                      "body-md": ["Inter"],
+                      "display": ["Geist"],
+                      "headline-lg": ["Geist"],
+                      "headline-md": ["Geist"],
+                      "headline-lg-mobile": ["Geist"],
+                      "label-md": ["Geist"]
+              },
+              "fontSize": {
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "display": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}]
+              }
+            },
+          },
+        }
+      </script>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen overflow-x-hidden selection:bg-primary/30">
+<!-- Fixed Sidebar Navigation -->
+<aside class="fixed left-0 top-0 h-screen w-sidebar-width bg-surface border-r border-white/10 flex flex-col p-lg gap-md z-50">
+<div class="font-headline-md text-headline-md font-bold text-on-surface mb-xl tracking-tighter">FaceVault Pro</div>
+<div class="flex items-center gap-md mb-lg p-sm rounded-lg hover:bg-surface-container transition-colors cursor-pointer">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional photographer's studio headshot, high-end editorial style with soft indigo rim lighting. The subject has a neutral, intelligent expression. The overall atmosphere is sophisticated and technologically clean, matching a luxury AI software brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVxvqW_tiFAV5MRVAsoIgfcZRp3En08623wdeT8bsYUlWN6JUAPS9quRVfFbRJe0YmALYCjnnJI_FNmqnQMrlgVBtqlrtXsjF5MWfegnD4BpICtumh4W-X7n_dYDwCz3-b1cRPgiaupPKG8NoTXcOdH59kTK-XiMMo-KKGVFkjgFLUKbUmda_V4ME4D3zS3p9EUruwSTe21ry0dlubYn5gV_T6FQPXaF7-RA7gAFbcV9oq_dILEt3t_ElYxyxZtP8QcnxwEHOyhMA"/>
+</div>
+<div>
+<div class="font-label-md text-label-md text-on-surface font-bold">Elite Account</div>
+<div class="text-xs text-on-surface-variant">Photographer Profile</div>
+</div>
+</div>
+<nav class="flex flex-col gap-sm flex-grow">
+<a class="text-on-surface-variant flex items-center gap-md font-label-md text-label-md p-sm rounded-lg hover:text-on-surface transition-all duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                Dashboard
+            </a>
+<a class="text-on-surface-variant flex items-center gap-md font-label-md text-label-md p-sm rounded-lg hover:text-on-surface transition-all duration-200" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+                History
+            </a>
+<a class="text-primary flex items-center gap-md font-label-md text-label-md p-sm rounded-lg relative active-dot" href="#">
+<span class="material-symbols-outlined">auto_awesome</span>
+                Recent Images
+            </a>
+<a class="text-on-surface-variant flex items-center gap-md font-label-md text-label-md p-sm rounded-lg hover:text-on-surface transition-all duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+                Settings
+            </a>
+<div class="mt-xl pt-lg border-t border-white/5">
+<div class="text-[10px] uppercase tracking-widest text-on-surface-variant/50 mb-md px-sm">AI Filters</div>
+<div class="flex flex-col gap-lg px-sm">
+<div class="space-y-sm">
+<label class="font-label-sm text-label-sm text-on-surface-variant flex justify-between">
+                            Confidence Score <span>85%+</span>
+</label>
+<input class="w-full h-1 bg-surface-container-highest rounded-lg appearance-none cursor-pointer accent-primary" max="100" min="0" type="range" value="85"/>
+</div>
+<div class="space-y-sm">
+<label class="font-label-sm text-label-sm text-on-surface-variant">Face ID Database</label>
+<div class="flex flex-wrap gap-xs">
+<span class="px-sm py-1 bg-primary/10 border border-primary/20 rounded-full text-[10px] text-primary flex items-center gap-1 cursor-pointer">
+                                Verified <span class="material-symbols-outlined text-[12px]">check_circle</span>
+</span>
+<span class="px-sm py-1 bg-surface-container-highest border border-white/5 rounded-full text-[10px] text-on-surface-variant hover:bg-white/5 cursor-pointer">
+                                Unknown
+                            </span>
+</div>
+</div>
+</div>
+</div>
+</nav>
+<button class="bg-primary text-on-primary font-label-md text-label-md px-lg py-md rounded-xl hover:opacity-90 active:scale-95 transition-all duration-200 flex items-center justify-center gap-sm">
+<span class="material-symbols-outlined">add</span>
+            New Event
+        </button>
+<div class="flex flex-col gap-sm mt-auto pt-lg border-t border-white/10">
+<a class="text-on-surface-variant flex items-center gap-md font-label-md text-label-md hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined">help</span>
+                Help
+            </a>
+<a class="text-on-surface-variant flex items-center gap-md font-label-md text-label-md hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined">logout</span>
+                Sign Out
+            </a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-sidebar-width min-h-screen p-xl flex flex-col gap-xl max-w-container-max mx-auto">
+<!-- Header & Search -->
+<header class="flex flex-col md:flex-row md:items-end justify-between gap-lg">
+<div class="space-y-sm">
+<div class="flex items-center gap-md">
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Recent Images</h1>
+<div class="flex items-center gap-sm px-sm py-1 bg-primary/10 text-primary rounded-full border border-primary/20">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<span class="font-label-sm text-label-sm uppercase tracking-tighter">Live Feed</span>
+</div>
+</div>
+<p class="text-on-surface-variant font-body-md">AI engine is processing real-time arrivals. 124 photos scanned in last hour.</p>
+</div>
+<!-- Natural Language Search -->
+<div class="relative w-full max-w-md">
+<div class="absolute inset-y-0 left-md flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-primary">search</span>
+</div>
+<input class="w-full bg-surface-container-low border border-white/10 rounded-full py-md pl-12 pr-12 focus:ring-1 focus:ring-primary focus:border-primary transition-all text-on-surface placeholder:text-on-surface-variant/50 glass-card" placeholder="Find photos of a sunset in Greece..." type="text"/>
+<div class="absolute inset-y-0 right-md flex items-center">
+<span class="bg-primary/20 text-primary text-[10px] font-bold px-sm py-0.5 rounded border border-primary/30">AI</span>
+</div>
+</div>
+</header>
+<!-- Gallery Controls -->
+<div class="flex items-center justify-between border-b border-white/5 pb-md">
+<div class="flex items-center gap-md text-on-surface-variant font-label-md">
+<span class="text-on-surface font-bold">All Captures</span>
+<span class="opacity-30">|</span>
+<button class="hover:text-primary transition-colors">Portraits</button>
+<button class="hover:text-primary transition-colors">Group Shots</button>
+<button class="hover:text-primary transition-colors">Objects</button>
+</div>
+<div class="flex items-center gap-sm">
+<button class="p-2 hover:bg-white/5 rounded-lg text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined">grid_view</span>
+</button>
+<button class="p-2 hover:bg-white/5 rounded-lg text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined">view_list</span>
+</button>
+</div>
+</div>
+<!-- Masonry Grid of Photos -->
+<div class="masonry-grid gap-gutter space-y-gutter">
+<!-- Card 1: Processing State -->
+<div class="break-inside-avoid relative rounded-xl overflow-hidden glass-card image-card shimmer-border h-[400px]">
+<img class="w-full h-full object-cover" data-alt="A high-fashion street portrait of a woman in Milan, captured during golden hour. The sunlight creates a warm indigo-violet glow. The AI has drawn thin glowing polygonal bounding boxes around her face and accessory bag. Sharp focus on eyes, blurred architectural background. Cinematic, high-tech aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCYs9_EqxVTy68Fp6OTPAoQFQyV8BIh3pFUwzAe-2S4yXWzFCBTvtWPBf4hK7KJ_u5VPHFCc5hi6MAbMb43sPUv57MI6ALyqBvdh9UnHxF0A4SJi55mvydeIO5JfJvgGDTC-5Q3O500wlYBYPsKqsf-Ey56-iCBnmYu8lwH9_Fs_k2hdn8TtoXIaI0nn3Kz3ka4aEZswzcdxVF6kamngU7Yx61QNlXfblev6YQ2mvDJKcK66rZ03WQ9yw2kwCo4IDN0uz_UKGLL0NI"/>
+<div class="image-hover-overlay absolute inset-0 p-lg flex flex-col justify-end">
+<div class="flex flex-wrap gap-xs mb-sm">
+<span class="bg-primary text-on-primary text-[10px] font-bold px-sm py-1 rounded-full flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]" style="font-variation-settings: 'FILL' 1;">face</span> Elena V. (98%)
+                        </span>
+<span class="bg-white/20 backdrop-blur-md text-white text-[10px] px-sm py-1 rounded-full">Gucci Bag</span>
+</div>
+<div class="text-white/60 text-[12px] font-label-sm">Milan, Italy • Just Now</div>
+</div>
+<div class="absolute top-md right-md">
+<div class="bg-black/50 backdrop-blur-md px-sm py-1 rounded-lg border border-white/20 text-[10px] text-white flex items-center gap-1">
+<span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span> PROCESSED
+                    </div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="break-inside-avoid relative rounded-xl overflow-hidden glass-card image-card h-[320px]">
+<img class="w-full h-full object-cover" data-alt="Wide angle shot of a tech conference keynote hall with deep navy and indigo lighting. Multiple faces are identified with tiny digital tags floating above them. Minimalist, professional software photography style, emphasizing deep space and sharp precision. High-contrast luxury tech environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCwG4tA02RhVSSATksUxRkrgUg2KIDaE-23kXE6iXWEEmakX_tgCKqFsABWhQrujCucFHLSrvx1HBKZb42MoM-d99cUvG-AgWGQihpj64faIQeedjqOz1UeXHHVjMYEHGeCVw6c6_lmi8pi41nLZFhfCUFAcbe8JowJXcxL8uxlYnRmi8YKc9gL8SyJUGOFhNf5Klktn3jYA5NXKOR0sBrGDmNYXPJaStuL2AWUjYY8TN8A9QB-SvH74WoayQRsTS7HWpL9yjE9rUk"/>
+<div class="image-hover-overlay absolute inset-0 p-lg flex flex-col justify-end">
+<div class="flex flex-wrap gap-xs mb-sm">
+<span class="bg-white/20 backdrop-blur-md text-white text-[10px] px-sm py-1 rounded-full">Crowd Analysis</span>
+<span class="bg-white/20 backdrop-blur-md text-white text-[10px] px-sm py-1 rounded-full">42 Faces</span>
+</div>
+<div class="text-white/60 text-[12px] font-label-sm">TechSummit • 2m ago</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="break-inside-avoid relative rounded-xl overflow-hidden glass-card image-card h-[500px]">
+<img class="w-full h-full object-cover" data-alt="A portrait of a male CEO in a glass-walled office with a skyline view at dusk. The mood is powerful and calm with deep blue and soft purple lighting. AI overlays suggest biological data points like pulse or attention level. Extremely clean, high-resolution aesthetic, evoking computational elegance and luxury security." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3DFVM_sK4Emv-w3FpRye3v32DuzqlYMDrjTr9PFVUk8V-Cu9TEc3qXizBlXIFmO8SJFAO0vZeLsrE7-AZwLKOxJYWy4cHDuinQ7onFuYL768KdQgqvhIxly_1nm1kj3aFfqeFAzomr18TZ_izkwk6OLC6uvioeRiOiQstzjhW8rDMPKGIz9tCPQLk-2Dct8855FCifbhrid-8Oa0iqNXIj1du0jKeKrBxxonayjimhCaVLGtD1Fav0vVBwyG43nmZPUcZWvx_Fkk"/>
+<div class="image-hover-overlay absolute inset-0 p-lg flex flex-col justify-end">
+<div class="flex flex-wrap gap-xs mb-sm">
+<span class="bg-primary text-on-primary text-[10px] font-bold px-sm py-1 rounded-full flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]" style="font-variation-settings: 'FILL' 1;">verified</span> Marcus K. (99%)
+                        </span>
+<span class="bg-white/20 backdrop-blur-md text-white text-[10px] px-sm py-1 rounded-full">Smartwatch</span>
+</div>
+<div class="text-white/60 text-[12px] font-label-sm">London HQ • 5m ago</div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="break-inside-avoid relative rounded-xl overflow-hidden glass-card image-card h-[280px]">
+<img class="w-full h-full object-cover" data-alt="A futuristic workspace with multiple monitors displaying facial recognition data and heatmaps. Minimalist office furniture, soft ambient indigo lighting, and a serene, professional vibe. The photo emphasizes the invisible AI heavy-lifting happening in a calm, refined space." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJkgeH4Rzf_AYwoTHVJ7fa1usLX6WYxNCQdxiO2c0Ojbo6uyWYTD8YfsKNqBpZVhAZP9gOSNl1uYjvKV6dAWvItGqea9IPT50OKyBk2JNwOhtacVwXdx-YGrf2w492Up4_jJv8vGhQtMF4Pn4DTFvY7BvfmpXhynLhnBPtaarT5Ze-h8A9gMHXmrZylDQBUzFC55QWYAKU7atHtZqU2TjcVfAxpKq697VJZFBKVS7713mbO-_wpmjHx80MeFVDztcz1UTApypBCIs"/>
+<div class="image-hover-overlay absolute inset-0 p-lg flex flex-col justify-end">
+<div class="flex flex-wrap gap-xs mb-sm">
+<span class="bg-white/20 backdrop-blur-md text-white text-[10px] px-sm py-1 rounded-full">Environment</span>
+<span class="bg-white/20 backdrop-blur-md text-white text-[10px] px-sm py-1 rounded-full">Low Light +</span>
+</div>
+<div class="text-white/60 text-[12px] font-label-sm">Security Hub • 12m ago</div>
+</div>
+</div>
+<!-- Card 5 -->
+<div class="break-inside-avoid relative rounded-xl overflow-hidden glass-card image-card h-[420px]">
+<img class="w-full h-full object-cover" data-alt="A group of professionals laughing in a high-end lounge area. The lighting is warm but crisp with indigo shadows. AI tags pinpoint three different known individuals with high confidence scores. Professional, lifestyle photography with a technical edge." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCH8PElrQEd_oFB7cnVC3YpkH_CACM3GHNpY-kJ18yXAnSvRaazpgB0G1lPNQzyg52qDOvzjqWBuR2AIae09HsMyRf0HI_iJ0QcwYq0UgvQ7UenpR7rvk_oDNHh2uUnpxlVkl9irFVi0gG4I67UWLKsEKgepaTJPFXG2RTlZbrI0RNTQnInBrbzFXKeS6jAxi0jet2Lxvw6HplLZ9KbkfMnwPZu1XN6DyRJuimZuapUCBy-yiZCBIW9g6NoPv4eRHOdHrLnlxp4Uok"/>
+<div class="image-hover-overlay absolute inset-0 p-lg flex flex-col justify-end">
+<div class="flex flex-wrap gap-xs mb-sm">
+<span class="bg-primary text-on-primary text-[10px] font-bold px-sm py-1 rounded-full">Group Identified</span>
+<span class="bg-white/20 backdrop-blur-md text-white text-[10px] px-sm py-1 rounded-full">Lounge-4</span>
+</div>
+<div class="text-white/60 text-[12px] font-label-sm">Airport Lounge • 24m ago</div>
+</div>
+</div>
+<!-- Card 6 -->
+<div class="break-inside-avoid relative rounded-xl overflow-hidden glass-card image-card h-[360px]">
+<img class="w-full h-full object-cover" data-alt="Extreme close up of a luxury watch on a wrist, with the AI identifying the brand and model via a subtle digital glow. The lighting is dramatic, high-contrast, with deep blue tones and sharp highlights on the metallic surfaces. High-end product photography meets forensic AI analysis." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6WFG10qCNgMacNIIl9-oQKV0EucjUr2ZWJ0uDIVayjUWpyAteRh_XnM3KJ5Xd7peMIGPMoR66dmf8la4_btGtidb6sG_Dqau-DTG0mePaohLcivCKUglhH0Fgjwg8qMbbWt16QHjGWElck9MQDJry2ZHXaBRUp9GXZPVSYbcqFFiz1nJSjQj_oHAZ_0wMGR5blxymir5R_wIqm4YDXu-rvenApcpvstArMtsRoHKs51rqUxc8OULotwGN1npjTmrrdR1Xg1qvPMo"/>
+<div class="image-hover-overlay absolute inset-0 p-lg flex flex-col justify-end">
+<div class="flex flex-wrap gap-xs mb-sm">
+<span class="bg-white/20 backdrop-blur-md text-white text-[10px] px-sm py-1 rounded-full">Object ID: Rolex</span>
+<span class="bg-white/20 backdrop-blur-md text-white text-[10px] px-sm py-1 rounded-full">Serial Scanned</span>
+</div>
+<div class="text-white/60 text-[12px] font-label-sm">Retail Outlet • 40m ago</div>
+</div>
+</div>
+</div>
+<!-- Load More Section -->
+<div class="flex justify-center py-xl">
+<button class="px-xl py-md bg-surface-container border border-white/10 rounded-xl font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:border-white/20 transition-all">
+                Loading older captures...
+            </button>
+</div>
+</main>
+<!-- Contextual Status Bar (Micro-interactions) -->
+<div class="fixed bottom-lg right-lg glass-card rounded-xl p-md flex items-center gap-md border border-primary/20 shadow-[0px_10px_30px_rgba(99,102,241,0.15)] translate-y-20 transition-transform duration-500" id="status-bar">
+<div class="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin"></div>
+<div>
+<div class="text-[12px] font-bold text-on-surface">AI Indexing In Progress</div>
+<div class="text-[10px] text-on-surface-variant">Scanning 14 new assets from Event: Milan Fashion Week</div>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface ml-md" onclick="document.getElementById('status-bar').classList.add('translate-y-20')">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<script>
+        // Simple micro-interaction for status bar
+        setTimeout(() => {
+            document.getElementById('status-bar').classList.remove('translate-y-20');
+        }, 1500);
+
+        // Simulated confidence range update
+        const range = document.querySelector('input[type="range"]');
+        const rangeLabel = range.parentElement.querySelector('span');
+        range.addEventListener('input', (e) => {
+            rangeLabel.textContent = e.target.value + '%+';
+        });
+
+        // Add a subtle parallax to cards on hover
+        document.querySelectorAll('.image-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const xc = rect.width / 2;
+                const yc = rect.height / 2;
+                const dx = x - xc;
+                const dy = y - yc;
+                card.style.transform = `perspective(1000px) rotateY(${dx / 40}deg) rotateX(${-dy / 40}deg)`;
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'perspective(1000px) rotateY(0deg) rotateX(0deg)';
+            });
+        });
+    </script>
+</body></html>

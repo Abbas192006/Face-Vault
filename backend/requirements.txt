@@ -1,0 +1,7 @@
+fastapi 
+uvicorn 
+insightface 
+faiss-cpu 
+celery 
+redis 
+python-multipart
