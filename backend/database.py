@@ -99,6 +99,30 @@ def init_db():
         )
     ''')
     
+    # People table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS people (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            event_id INTEGER NOT NULL,
+            name TEXT NOT NULL,
+            representative_face_id INTEGER,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(event_id) REFERENCES events(id) ON DELETE CASCADE,
+            FOREIGN KEY(representative_face_id) REFERENCES faces(id) ON DELETE SET NULL
+        )
+    ''')
+
+    # People-Faces mapping table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS people_faces (
+            person_id INTEGER NOT NULL,
+            face_id INTEGER NOT NULL,
+            PRIMARY KEY (person_id, face_id),
+            FOREIGN KEY(person_id) REFERENCES people(id) ON DELETE CASCADE,
+            FOREIGN KEY(face_id) REFERENCES faces(id) ON DELETE CASCADE
+        )
+    ''')
+    
     conn.commit()
     conn.close()
 
@@ -192,7 +216,8 @@ def get_photo_by_face_index(embedding_index: int) -> Optional[Dict[str, Any]]:
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute('''
-        SELECT p.id, p.filepath, p.filename, f.box_x1, f.box_y1, f.box_x2, f.box_y2 
+        SELECT p.id, p.filepath, p.filename, f.box_x1, f.box_y1, f.box_x2, f.box_y2,
+               (SELECT COUNT(*) FROM faces f2 WHERE f2.photo_id = p.id) as face_count
         FROM faces f 
         JOIN photos p ON f.photo_id = p.id 
         WHERE f.embedding_index = ?
@@ -286,6 +311,77 @@ def link_photo_to_event(event_id: int, photo_id: int):
     finally:
         conn.close()
 
+# ─── People ───────────────────────────────────────────────────────────
+
+def create_person(event_id: int, name: str, representative_face_id: int = None) -> int:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO people (event_id, name, representative_face_id) VALUES (?, ?, ?)",
+        (event_id, name, representative_face_id)
+    )
+    conn.commit()
+    person_id = cursor.lastrowid
+    conn.close()
+    return person_id
+
+def rename_person(person_id: int, new_name: str) -> bool:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE people SET name = ? WHERE id = ?", (new_name, person_id))
+    updated = cursor.rowcount > 0
+    conn.commit()
+    conn.close()
+    return updated
+
+def link_face_to_person(person_id: int, face_id: int):
+    conn = get_db_connection()
+    try:
+        conn.execute("INSERT OR IGNORE INTO people_faces (person_id, face_id) VALUES (?, ?)", (person_id, face_id))
+        conn.commit()
+    finally:
+        conn.close()
+
+def delete_people_for_event(event_id: int):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM people WHERE event_id = ?", (event_id,))
+    conn.commit()
+    conn.close()
+
+def get_people_for_event(event_id: int) -> List[Dict[str, Any]]:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT p.id, p.name, p.representative_face_id, 
+               (SELECT COUNT(*) FROM people_faces pf WHERE pf.person_id = p.id) as face_count,
+               ph.filepath as rep_filepath
+        FROM people p
+        LEFT JOIN faces f ON p.representative_face_id = f.id
+        LEFT JOIN photos ph ON f.photo_id = ph.id
+        WHERE p.event_id = ?
+        ORDER BY face_count DESC
+    ''', (event_id,))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+def get_faces_for_person(person_id: int) -> List[Dict[str, Any]]:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT f.id as face_id, f.box_x1, f.box_y1, f.box_x2, f.box_y2,
+               p.id as photo_id, p.filepath, p.filename,
+               (SELECT COUNT(*) FROM faces f2 WHERE f2.photo_id = p.id) as photo_face_count
+        FROM people_faces pf
+        JOIN faces f ON pf.face_id = f.id
+        JOIN photos p ON f.photo_id = p.id
+        WHERE pf.person_id = ?
+    ''', (person_id,))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
 # ─── Bookmarks ────────────────────────────────────────────────────────
 
 def add_bookmark(photo_id: int) -> bool:
@@ -365,6 +461,20 @@ def get_all_tags() -> List[Dict[str, Any]]:
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT label, COUNT(*) as count FROM tags GROUP BY label ORDER BY count DESC")
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+def get_photos_by_tag(label: str) -> List[Dict[str, Any]]:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT t.id as tag_id, t.created_at, p.id as photo_id, p.filepath, p.filename
+        FROM tags t
+        JOIN photos p ON t.photo_id = p.id
+        WHERE t.label = ?
+        ORDER BY t.created_at DESC
+    ''', (label.strip().lower(),))
     rows = cursor.fetchall()
     conn.close()
     return [dict(row) for row in rows]

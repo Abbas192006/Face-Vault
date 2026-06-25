@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 
 export type GalleryView = 'grid' | 'list'
-export type GalleryFilter = 'all' | 'portraits' | 'groups' | 'objects'
+export type GalleryFilter = 'all' | 'portraits' | 'groups'
 
 interface UIState {
   galleryView: GalleryView

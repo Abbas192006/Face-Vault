@@ -5,6 +5,8 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { FolderPickerModal } from '@/components/shared/FolderPickerModal'
+import { Link, useSearchParams } from 'react-router-dom'
 import {
   fetchEvents,
   createEvent,
@@ -18,8 +20,11 @@ export default function EventsPage() {
   const [events, setEvents] = useState<EventData[]>([])
   const [loading, setLoading] = useState(true)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isFolderPickerOpen, setIsFolderPickerOpen] = useState(false)
   const [newEvent, setNewEvent] = useState({ name: '', folderPath: '', description: '' })
   const [indexingEvents, setIndexingEvents] = useState<Record<number, boolean>>({})
+
+  const [searchParams, setSearchParams] = useSearchParams()
 
   const loadEvents = async () => {
     setLoading(true)
@@ -36,6 +41,14 @@ export default function EventsPage() {
   useEffect(() => {
     loadEvents()
   }, [])
+
+  useEffect(() => {
+    if (searchParams.get('new') === 'true') {
+      setIsDialogOpen(true)
+      searchParams.delete('new')
+      setSearchParams(searchParams, { replace: true })
+    }
+  }, [searchParams, setSearchParams])
 
   const handleCreate = async () => {
     if (!newEvent.name) {
@@ -128,11 +141,18 @@ export default function EventsPage() {
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-on-surface">Folder Path</label>
-                    <Input
-                      placeholder="e.g. C:\Photos\Wedding"
-                      value={newEvent.folderPath}
-                      onChange={e => setNewEvent({ ...newEvent, folderPath: e.target.value })}
-                    />
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Select a folder..."
+                        value={newEvent.folderPath}
+                        readOnly
+                        className="cursor-pointer"
+                        onClick={() => setIsFolderPickerOpen(true)}
+                      />
+                      <Button variant="outline" onClick={() => setIsFolderPickerOpen(true)}>
+                        Browse
+                      </Button>
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-on-surface">Description (Optional)</label>
@@ -151,6 +171,16 @@ export default function EventsPage() {
             </div>
           )}
         </div>
+        
+        {isFolderPickerOpen && (
+          <FolderPickerModal 
+            onSelect={(path) => {
+              setNewEvent({ ...newEvent, folderPath: path })
+              setIsFolderPickerOpen(false)
+            }}
+            onCancel={() => setIsFolderPickerOpen(false)}
+          />
+        )}
       </header>
 
       {loading ? (
@@ -217,8 +247,14 @@ export default function EventsPage() {
                     onClick={() => handleIndex(event.id)}
                   >
                     {isIndexing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Play className="h-4 w-4 mr-2" />}
-                    {event.status === 'indexed' ? 'Re-index' : 'Index Folder'}
+                    {event.status === 'indexed' ? 'Re-index' : 'Index'}
                   </Button>
+                  <Link to={`/events/${event.id}/people`} className="flex-1">
+                    <Button variant="secondary" size="sm" className="w-full" disabled={event.status !== 'indexed'}>
+                      <Users className="h-4 w-4 mr-2" />
+                      People
+                    </Button>
+                  </Link>
                   <Button
                     variant="outline"
                     size="sm"

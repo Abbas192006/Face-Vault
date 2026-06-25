@@ -17,11 +17,13 @@ from database import (
     add_search_history, get_search_history, delete_search_history, clear_search_history,
     create_event, get_events, get_event, update_event, delete_event, link_photo_to_event,
     add_bookmark, remove_bookmark, get_bookmarks, is_bookmarked, get_photo_id_by_path,
-    add_tag, remove_tag, get_tags_for_photo, get_all_tags,
-    get_stats, nuke_all_data
+    add_tag, remove_tag, get_tags_for_photo, get_all_tags, get_photos_by_tag,
+    get_stats, nuke_all_data, get_people_for_event, get_faces_for_person, rename_person,
+    get_db_connection
 )
 from vector_index import vector_store
 from detector import detector
+from clustering import cluster_event_faces
 
 app = FastAPI(title="FaceVault Event AI")
 
@@ -64,15 +66,16 @@ def process_directory(directory_path: str, task_id: str, event_id: int = None):
     
     for idx, path in enumerate(image_paths):
         try:
-            # Skip if already indexed
-            if photo_exists(path):
+            # Skip embedding generation if already indexed, but link to event
+            existing_photo_id = get_photo_id_by_path(path)
+            if existing_photo_id:
+                if event_id:
+                    link_photo_to_event(event_id, existing_photo_id)
                 scan_tasks[task_id]["processed"] = idx + 1
-                photo_count += 1
                 continue
 
             filename = os.path.basename(path)
             photo_id = add_photo(path, filename)
-            photo_count += 1
             
             # Link photo to event if provided
             if event_id:
@@ -94,7 +97,33 @@ def process_directory(directory_path: str, task_id: str, event_id: int = None):
     
     # Update event stats if linked
     if event_id:
-        update_event(event_id, status="indexed", photo_count=photo_count, face_count=face_count)
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Calculate accurate counts
+        cursor.execute("SELECT COUNT(*) FROM event_photos WHERE event_id = ?", (event_id,))
+        real_photo_count = cursor.fetchone()[0]
+        
+        cursor.execute('''
+            SELECT COUNT(f.id) 
+            FROM faces f
+            JOIN event_photos ep ON f.photo_id = ep.photo_id
+            WHERE ep.event_id = ?
+        ''', (event_id,))
+        real_face_count = cursor.fetchone()[0]
+        
+        conn.close()
+        
+        update_event(event_id, status="indexed", photo_count=real_photo_count, face_count=real_face_count)
+        
+        # Trigger face clustering automatically
+        scan_tasks[task_id]["status"] = "clustering"
+        try:
+            cluster_event_faces(event_id)
+        except Exception as e:
+            print(f"Failed to cluster faces for event {event_id}: {e}")
+            
+        scan_tasks[task_id]["status"] = "completed"
 
 @app.post("/api/index")
 async def index_folder(path: str, background_tasks: BackgroundTasks, event_id: Optional[int] = None):
@@ -111,6 +140,47 @@ def get_status(task_id: str):
     if task_id not in scan_tasks:
         raise HTTPException(status_code=404, detail="Task not found")
     return scan_tasks[task_id]
+
+# ─── File System ──────────────────────────────────────────────────────
+
+@app.get("/api/directories")
+def list_directories(path: str = "C:/"):
+    try:
+        # Resolve to absolute path
+        abs_path = os.path.abspath(path)
+        if not os.path.exists(abs_path) or not os.path.isdir(abs_path):
+            raise HTTPException(status_code=400, detail="Invalid directory path")
+            
+        directories = []
+        for item in os.listdir(abs_path):
+            item_path = os.path.join(abs_path, item)
+            if os.path.isdir(item_path):
+                # skip hidden/system dirs on windows if possible, but basic try/except is enough
+                try:
+                    directories.append({
+                        "name": item,
+                        "path": item_path
+                    })
+                except Exception:
+                    pass
+        
+        # Sort alphabetically
+        directories.sort(key=lambda x: x["name"].lower())
+        
+        # Determine parent
+        parent = os.path.dirname(abs_path)
+        if parent == abs_path:
+            parent = None # we are at root
+            
+        return {
+            "current": abs_path,
+            "parent": parent,
+            "directories": directories
+        }
+    except PermissionError:
+        raise HTTPException(status_code=403, detail="Permission denied")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # ─── Image Serving ────────────────────────────────────────────────────
 
@@ -170,7 +240,8 @@ async def search_face(
                 "distance": res["distance"],
                 "photo": photo_meta,
                 "bookmarked": bookmarked,
-                "tags": tags
+                "tags": tags,
+                "face_count": photo_meta.get("face_count", 1)
             })
             
     matches.sort(key=lambda x: x["distance"])
@@ -265,6 +336,28 @@ async def reindex_event(event_id: int, background_tasks: BackgroundTasks):
     background_tasks.add_task(process_directory, event["folder_path"], task_id, event_id)
     return {"status": "started", "task_id": task_id}
 
+# ─── People ───────────────────────────────────────────────────────────
+
+@app.get("/api/events/{event_id}/people")
+def get_event_people(event_id: int):
+    event = get_event(event_id)
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    return {"people": get_people_for_event(event_id)}
+
+class PersonRenameRequest(BaseModel):
+    name: str
+
+@app.put("/api/people/{person_id}")
+def update_person_name(person_id: int, req: PersonRenameRequest):
+    if not rename_person(person_id, req.name):
+        raise HTTPException(status_code=404, detail="Person not found")
+    return {"status": "updated", "name": req.name}
+
+@app.get("/api/people/{person_id}/faces")
+def get_person_faces(person_id: int):
+    return {"faces": get_faces_for_person(person_id)}
+
 # ─── Bookmarks ────────────────────────────────────────────────────────
 
 class BookmarkRequest(BaseModel):
@@ -319,6 +412,10 @@ def untag_photo(req: TagRequest):
 @app.get("/api/photos/{photo_id}/tags")
 def get_photo_tags(photo_id: int):
     return {"tags": get_tags_for_photo(photo_id)}
+
+@app.get("/api/tags/{label}/photos")
+def get_tagged_photos(label: str):
+    return {"photos": get_photos_by_tag(label)}
 
 # ─── Stats ────────────────────────────────────────────────────────────
 

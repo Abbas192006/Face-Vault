@@ -17,6 +17,8 @@ import RecentPage from '@/pages/RecentPage'
 import SettingsPage from '@/pages/SettingsPage'
 
 const EventsPage = lazy(() => import('@/pages/EventsPage'))
+const PeoplePage = lazy(() => import('@/pages/PeoplePage'))
+const CollectionsPage = lazy(() => import('@/pages/CollectionsPage'))
 
 const PUBLISHABLE_KEY =
   import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ||
@@ -37,6 +39,8 @@ createRoot(document.getElementById('root')!).render(
                 <Route element={<PageTransition />}>
                   <Route path="/workspace" element={<WorkspacePage />} />
                   <Route path="/events" element={<Suspense fallback={null}><EventsPage /></Suspense>} />
+                  <Route path="/events/:eventId/people" element={<Suspense fallback={null}><PeoplePage /></Suspense>} />
+                  <Route path="/collections" element={<Suspense fallback={null}><CollectionsPage /></Suspense>} />
                   <Route path="/history" element={<HistoryPage />} />
                   <Route path="/recent" element={<RecentPage />} />
                   <Route path="/settings" element={<SettingsPage />} />

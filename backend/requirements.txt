@@ -5,3 +5,4 @@ faiss-cpu
 celery 
 redis 
 python-multipart
+scikit-learn

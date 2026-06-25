@@ -8,7 +8,6 @@ const filters: { id: GalleryFilter; label: string }[] = [
   { id: 'all', label: 'All Captures' },
   { id: 'portraits', label: 'Portraits' },
   { id: 'groups', label: 'Group Shots' },
-  { id: 'objects', label: 'Objects' },
 ]
 
 export function GalleryControls() {

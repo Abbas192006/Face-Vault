@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input'
 import { Slider } from '@/components/ui/slider'
 import { useSearchStore } from '@/stores/search-store'
 import { useUploadStore } from '@/stores/upload-store'
+import { FolderPickerModal } from '@/components/shared/FolderPickerModal'
+import { useState } from 'react'
 
 export function SearchToolbar() {
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -127,12 +129,7 @@ export function SearchToolbar() {
       </div>
 
       <div className="w-full sm:hidden">
-        <Input
-          type="text"
-          placeholder="Target Directory (e.g. C:\Photos)"
-          value={targetFolder}
-          onChange={(e) => setTargetFolder(e.target.value)}
-        />
+        <TargetFolderInput />
       </div>
     </motion.div>
   )
@@ -140,14 +137,32 @@ export function SearchToolbar() {
 
 export function TargetFolderInput() {
   const { targetFolder, setTargetFolder } = useSearchStore()
+  const [isOpen, setIsOpen] = useState(false)
 
   return (
-    <Input
-      type="text"
-      placeholder="Target Directory (e.g. C:\Photos)"
-      value={targetFolder}
-      onChange={(e) => setTargetFolder(e.target.value)}
-      className="rounded-full py-6"
-    />
+    <>
+      <div className="flex gap-2 w-full">
+        <Input
+          type="text"
+          placeholder="Select Target Directory..."
+          value={targetFolder}
+          readOnly
+          className="rounded-full py-6 cursor-pointer"
+          onClick={() => setIsOpen(true)}
+        />
+        <Button variant="outline" className="rounded-full h-auto py-2 px-6" onClick={() => setIsOpen(true)}>
+          Browse
+        </Button>
+      </div>
+      {isOpen && (
+        <FolderPickerModal
+          onSelect={(path) => {
+            setTargetFolder(path)
+            setIsOpen(false)
+          }}
+          onCancel={() => setIsOpen(false)}
+        />
+      )}
+    </>
   )
 }

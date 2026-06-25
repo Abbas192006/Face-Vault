@@ -8,6 +8,7 @@ import { getImageUrl, toggleBookmark, addPhotoTag, removePhotoTag } from '@/lib/
 import { cn } from '@/lib/cn'
 import { useSearchStore } from '@/stores/search-store'
 import { useUIStore } from '@/stores/ui-store'
+import { PhotoLightbox } from '@/components/shared/PhotoLightbox'
 import { toast } from 'sonner'
 
 const containerVariants = {
@@ -30,7 +31,7 @@ const itemVariants = {
 
 export function MatchGallery() {
   const { matches, hasSearched, selectedPaths, toggleSelection, setSelections } = useSearchStore()
-  const { galleryView } = useUIStore()
+  const { galleryView, galleryFilter } = useUIStore()
 
   // Local state for tags and bookmarks to show immediate UI updates
   const [localBookmarks, setLocalBookmarks] = useState<Record<string, boolean>>({})
@@ -55,6 +56,12 @@ export function MatchGallery() {
       </div>
     )
   }
+
+  const filteredMatches = matches.filter(match => {
+    if (galleryFilter === 'portraits') return match.face_count === 1
+    if (galleryFilter === 'groups') return match.face_count > 1
+    return true
+  })
 
   if (matches.length === 0) return null
 
@@ -138,7 +145,7 @@ export function MatchGallery() {
             : 'flex flex-col gap-4',
         )}
       >
-        {matches.slice(0, visibleCount).map((match, idx) => {
+        {filteredMatches.slice(0, visibleCount).map((match, idx) => {
           const path = match.photo.filepath
           const isSelected = selectedPaths.has(path)
           const score = Math.max(0, 100 - match.distance * 50).toFixed(1)
@@ -248,10 +255,10 @@ export function MatchGallery() {
           )
         })}
       </motion.div>
-      {matches.length > visibleCount && (
+      {filteredMatches.length > visibleCount && (
         <div className="flex flex-col items-center gap-3 mt-8">
           <p className="text-on-surface-variant text-sm">
-            Showing top {visibleCount} results out of {matches.length} matches.
+            Showing top {visibleCount} results out of {filteredMatches.length} matches.
           </p>
           <div className="flex gap-4">
             <Button
@@ -262,7 +269,7 @@ export function MatchGallery() {
             </Button>
             <Button
               variant="outline"
-              onClick={() => setVisibleCount(matches.length)}
+              onClick={() => setVisibleCount(filteredMatches.length)}
             >
               Show All
             </Button>
@@ -273,63 +280,11 @@ export function MatchGallery() {
       {/* Lightbox Modal */}
       <AnimatePresence>
         {lightboxIndex !== null && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-sm flex items-center justify-center"
-            onClick={() => setLightboxIndex(null)}
-          >
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-4 right-4 text-white hover:bg-white/20 z-50"
-              onClick={() => setLightboxIndex(null)}
-            >
-              <X className="h-6 w-6" />
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 z-50 h-12 w-12"
-              onClick={(e) => {
-                e.stopPropagation()
-                setLightboxIndex(lightboxIndex > 0 ? lightboxIndex - 1 : matches.length - 1)
-              }}
-            >
-              <ChevronLeft className="h-8 w-8" />
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 z-50 h-12 w-12"
-              onClick={(e) => {
-                e.stopPropagation()
-                setLightboxIndex(lightboxIndex < matches.length - 1 ? lightboxIndex + 1 : 0)
-              }}
-            >
-              <ChevronRight className="h-8 w-8" />
-            </Button>
-
-            <motion.img
-              key={lightboxIndex}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              src={getImageUrl(matches[lightboxIndex].photo.filepath, false)}
-              className="max-h-[90vh] max-w-[90vw] object-contain"
-              onClick={(e) => e.stopPropagation()}
-            />
-            
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 px-6 py-3 rounded-full backdrop-blur-md text-white flex gap-4 items-center" onClick={e => e.stopPropagation()}>
-              <span className="font-mono text-sm">{matches[lightboxIndex].photo.filename}</span>
-              <div className="w-px h-4 bg-white/20" />
-              <span className="text-primary font-bold">{Math.max(0, 100 - matches[lightboxIndex].distance * 50).toFixed(1)}% Match</span>
-            </div>
-          </motion.div>
+          <PhotoLightbox 
+            photos={filteredMatches.map(m => m.photo)}
+            initialIndex={lightboxIndex}
+            onClose={() => setLightboxIndex(null)}
+          />
         )}
       </AnimatePresence>
     </>

@@ -8,6 +8,7 @@ import {
   Plus,
   Settings,
   Sparkles,
+  FolderHeart,
 } from 'lucide-react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
@@ -17,6 +18,7 @@ import { cn } from '@/lib/cn'
 const navItems = [
   { to: '/workspace', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/events', label: 'Events', icon: CalendarDays },
+  { to: '/collections', label: 'Collections', icon: FolderHeart },
   { to: '/history', label: 'History', icon: History },
   { to: '/recent', label: 'Recent Images', icon: Sparkles },
   { to: '/settings', label: 'Settings', icon: Settings },
@@ -60,7 +62,7 @@ export function Sidebar({ className, onNavigate }: SidebarProps) {
       <Button
         className="mb-4"
         onClick={() => {
-          navigate('/workspace')
+          navigate('/events?new=true')
           onNavigate?.()
         }}
       >

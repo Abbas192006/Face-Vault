@@ -11,6 +11,7 @@ export interface MatchResult {
   photo: PhotoMeta
   bookmarked: boolean
   tags: string[]
+  face_count: number
 }
 
 export interface IndexStatus {
@@ -115,11 +116,56 @@ export interface BookmarkData {
   created_at: string
 }
 
+export interface DirectoryItem {
+  name: string
+  path: string
+}
+
+export interface DirectoryResponse {
+  current: string
+  parent: string | null
+  directories: DirectoryItem[]
+}
+
+export interface PersonData {
+  id: number
+  name: string
+  representative_face_id: number | null
+  face_count: number
+  rep_filepath: string | null
+}
+
+export interface PersonFaceData {
+  face_id: number
+  box_x1: number
+  box_y1: number
+  box_x2: number
+  box_y2: number
+  photo_id: number
+  filepath: string
+  filename: string
+  photo_face_count: number
+}
+
 // New functions
 export async function fetchStats(): Promise<StatsData> {
   const res = await fetch(`${API_BASE}/stats`)
   if (!res.ok) throw new Error('Failed to fetch stats')
   return res.json()
+}
+
+export async function fetchTags(): Promise<{label: string, count: number}[]> {
+  const res = await fetch(`${API_BASE}/tags`)
+  if (!res.ok) throw new Error('Failed to fetch tags')
+  const data = await res.json()
+  return data.tags
+}
+
+export async function fetchPhotosByTag(label: string): Promise<any[]> {
+  const res = await fetch(`${API_BASE}/tags/${label}/photos`)
+  if (!res.ok) throw new Error('Failed to fetch photos for tag')
+  const data = await res.json()
+  return data.photos
 }
 
 export async function fetchEvents(): Promise<EventData[]> {
@@ -197,4 +243,33 @@ export async function clearAllHistory(): Promise<void> {
 export async function nukeAllData(): Promise<void> {
   const res = await fetch(`${API_BASE}/nuke`, { method: 'DELETE' })
   if (!res.ok) throw new Error('Failed to reset data')
+}
+
+export async function fetchDirectories(path: string = 'C:/'): Promise<DirectoryResponse> {
+  const res = await fetch(`${API_BASE}/directories?path=${encodeURIComponent(path)}`)
+  if (!res.ok) throw new Error('Failed to fetch directories')
+  return res.json()
+}
+
+export async function fetchEventPeople(eventId: number): Promise<PersonData[]> {
+  const res = await fetch(`${API_BASE}/events/${eventId}/people`)
+  if (!res.ok) throw new Error('Failed to fetch people')
+  const data = await res.json()
+  return data.people ?? []
+}
+
+export async function fetchPersonFaces(personId: number): Promise<PersonFaceData[]> {
+  const res = await fetch(`${API_BASE}/people/${personId}/faces`)
+  if (!res.ok) throw new Error('Failed to fetch person faces')
+  const data = await res.json()
+  return data.faces ?? []
+}
+
+export async function renamePerson(personId: number, name: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/people/${personId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
+  })
+  if (!res.ok) throw new Error('Failed to rename person')
 }
