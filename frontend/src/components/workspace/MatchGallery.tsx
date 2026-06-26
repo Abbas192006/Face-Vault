@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check, ScanFace, Heart, Tag, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Check, ScanFace, Heart, Tag, X } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -9,6 +9,7 @@ import { cn } from '@/lib/cn'
 import { useSearchStore } from '@/stores/search-store'
 import { useUIStore } from '@/stores/ui-store'
 import { PhotoLightbox } from '@/components/shared/PhotoLightbox'
+import { groupPhotosByMonth } from '@/lib/grouping'
 import { toast } from 'sonner'
 
 const containerVariants = {
@@ -30,7 +31,7 @@ const itemVariants = {
 }
 
 export function MatchGallery() {
-  const { matches, hasSearched, selectedPaths, toggleSelection, setSelections } = useSearchStore()
+  const { matches, hasSearched, selectedPaths, toggleSelection, setSelections, startDate, endDate, sortBy } = useSearchStore()
   const { galleryView, galleryFilter } = useUIStore()
 
   // Local state for tags and bookmarks to show immediate UI updates
@@ -57,11 +58,42 @@ export function MatchGallery() {
     )
   }
 
-  const filteredMatches = matches.filter(match => {
-    if (galleryFilter === 'portraits') return match.face_count === 1
-    if (galleryFilter === 'groups') return match.face_count > 1
-    return true
-  })
+  const filteredMatches = useMemo(() => {
+    let result = matches.filter(match => {
+      if (galleryFilter === 'portraits') return match.face_count === 1
+      if (galleryFilter === 'groups') return match.face_count > 1
+      return true
+    })
+
+    if (startDate || endDate) {
+      result = result.filter((m) => {
+        const cap = m.photo.captured_at
+        if (!cap) return false
+        const capString = cap.split('T')[0]
+        if (startDate && capString < startDate) return false
+        if (endDate && capString > endDate) return false
+        return true
+      })
+    }
+
+    if (sortBy === 'newest') {
+      result.sort((a, b) => {
+        const t1 = a.photo.captured_at || ""
+        const t2 = b.photo.captured_at || ""
+        return t2.localeCompare(t1)
+      })
+    } else if (sortBy === 'oldest') {
+      result.sort((a, b) => {
+        const t1 = a.photo.captured_at || ""
+        const t2 = b.photo.captured_at || ""
+        return t1.localeCompare(t2)
+      })
+    } else {
+      result.sort((a, b) => a.distance - b.distance)
+    }
+
+    return result
+  }, [matches, galleryFilter, startDate, endDate, sortBy])
 
   if (matches.length === 0) return null
 
@@ -133,128 +165,178 @@ export function MatchGallery() {
     setLastSelectedIndex(idx)
   }
 
-  return (
-    <>
+  const renderPhotoCard = (match: any, globalIdx: number) => {
+    const path = match.photo.filepath
+    const isSelected = selectedPaths.has(path)
+    const score = Math.max(0, 100 - match.distance * 50).toFixed(1)
+    const isBookmarked = localBookmarks[path] ?? match.bookmarked
+    const tags = localTags[path] ?? match.tags ?? []
+
+    return (
       <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
+        key={`${path}-${globalIdx}`}
+        variants={itemVariants}
+        whileHover={{ scale: 1.02, y: -4 }}
+        onClick={(e) => handleSelect(e, path, globalIdx)}
         className={cn(
-          galleryView === 'grid'
-            ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-gutter'
-            : 'flex flex-col gap-4',
+          'relative rounded-xl overflow-hidden glass-card image-card cursor-pointer border-2 transition-colors group',
+          galleryView === 'grid' ? 'h-[300px]' : 'h-24 flex flex-row',
+          isSelected ? 'border-primary scanner-glow' : 'border-transparent',
         )}
       >
-        {filteredMatches.slice(0, visibleCount).map((match, idx) => {
-          const path = match.photo.filepath
-          const isSelected = selectedPaths.has(path)
-          const score = Math.max(0, 100 - match.distance * 50).toFixed(1)
-          const isBookmarked = localBookmarks[path] ?? match.bookmarked
-          const tags = localTags[path] ?? match.tags ?? []
-
-          return (
-            <motion.div
-              key={`${path}-${idx}`}
-              variants={itemVariants}
-              whileHover={{ scale: 1.02, y: -4 }}
-              onClick={(e) => handleSelect(e, path, idx)}
-              className={cn(
-                'relative rounded-xl overflow-hidden glass-card image-card cursor-pointer border-2 transition-colors group',
-                galleryView === 'grid' ? 'h-[300px]' : 'h-24 flex flex-row',
-                isSelected ? 'border-primary scanner-glow' : 'border-transparent',
-              )}
+        <img
+          className={cn(
+            'object-cover',
+            galleryView === 'grid' ? 'w-full h-full' : 'w-24 h-full shrink-0',
+          )}
+          src={getImageUrl(path)}
+          alt={match.photo.filename}
+          loading="lazy"
+          onClick={(e) => {
+            e.stopPropagation()
+            setLightboxIndex(globalIdx)
+          }}
+        />
+        
+        <div
+          className={cn(
+            'absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/80 via-black/20 to-transparent image-hover-overlay',
+            galleryView === 'list' && 'left-24',
+          )}
+        >
+          {/* Top Action Bar */}
+          <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8 bg-black/50 hover:bg-black/80 rounded-full"
+              onClick={(e) => {
+                e.stopPropagation()
+                setTagInputOpen(tagInputOpen === path ? null : path)
+              }}
             >
-              <img
-                className={cn(
-                  'object-cover',
-                  galleryView === 'grid' ? 'w-full h-full' : 'w-24 h-full shrink-0',
-                )}
-                src={getImageUrl(path)}
-                alt={match.photo.filename}
-                loading="lazy"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setLightboxIndex(idx)
+              <Tag className="h-4 w-4 text-white" />
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8 bg-black/50 hover:bg-black/80 rounded-full"
+              onClick={(e) => handleBookmark(e, path, isBookmarked)}
+            >
+              <Heart className={cn("h-4 w-4", isBookmarked ? "fill-primary text-primary" : "text-white")} />
+            </Button>
+          </div>
+
+          {tagInputOpen === path && (
+            <div className="absolute top-12 right-2 bg-background/90 p-2 rounded-lg border border-primary/20 backdrop-blur" onClick={e => e.stopPropagation()}>
+              <Input 
+                autoFocus
+                placeholder="Add tag..."
+                className="h-8 text-sm"
+                value={newTagValue}
+                onChange={e => setNewTagValue(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') handleAddTag(path, tags)
                 }}
               />
-              
-              <div
-                className={cn(
-                  'absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/80 via-black/20 to-transparent image-hover-overlay',
-                  galleryView === 'list' && 'left-24',
-                )}
-              >
-                {/* Top Action Bar */}
-                <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-8 w-8 bg-black/50 hover:bg-black/80 rounded-full"
+            </div>
+          )}
+
+          {/* Bottom Info Bar */}
+          <div className={cn("p-4 flex flex-col gap-1", galleryView === 'list' && 'justify-center h-full')}>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="bg-primary/20 text-primary hover:bg-primary/30 border-primary/20">
+                {score}% Match
+              </Badge>
+              {tags.map((tag: string) => (
+                <Badge key={tag} variant="outline" className="bg-black/50 border-white/10 flex items-center gap-1 group/tag">
+                  <Tag className="w-3 h-3" />
+                  {tag}
+                  <button 
                     onClick={(e) => {
                       e.stopPropagation()
-                      setTagInputOpen(tagInputOpen === path ? null : path)
+                      handleRemoveTag(e, path, tag, tags)
                     }}
+                    className="opacity-0 group-hover/tag:opacity-100 transition-opacity ml-1 hover:text-red-400"
                   >
-                    <Tag className="h-4 w-4 text-white" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-8 w-8 bg-black/50 hover:bg-black/80 rounded-full"
-                    onClick={(e) => handleBookmark(e, path, isBookmarked)}
-                  >
-                    <Heart className={cn("h-4 w-4", isBookmarked ? "fill-primary text-primary" : "text-white")} />
-                  </Button>
-                </div>
-
-                {tagInputOpen === path && (
-                  <div className="absolute top-12 right-2 bg-background/90 p-2 rounded-lg border border-primary/20 backdrop-blur" onClick={e => e.stopPropagation()}>
-                    <Input 
-                      autoFocus
-                      placeholder="Add tag..."
-                      className="h-8 text-sm"
-                      value={newTagValue}
-                      onChange={e => setNewTagValue(e.target.value)}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter') handleAddTag(path, tags)
-                        if (e.key === 'Escape') setTagInputOpen(null)
-                      }}
-                    />
-                  </div>
-                )}
-
-                <div className="p-4" onClick={(e) => {
-                  e.stopPropagation()
-                  setLightboxIndex(idx)
-                }}>
-                  <div className="flex flex-wrap gap-1 mb-2">
-                    {tags.map(tag => (
-                      <Badge key={tag} variant="secondary" className="text-[10px] py-0 px-1.5 flex items-center gap-1">
-                        {tag}
-                        <X className="h-3 w-3 cursor-pointer hover:text-error" onClick={(e) => handleRemoveTag(e, path, tag, tags)} />
-                      </Badge>
-                    ))}
-                  </div>
-                  <Badge variant="success" className="mb-2">
-                    <ScanFace className="h-3 w-3" />
-                    Match ({score}%)
-                  </Badge>
-                  <div className="text-on-surface/60 text-xs truncate">{match.photo.filename}</div>
-                </div>
-              </div>
-              
-              {isSelected && (
-                <div className="absolute top-4 left-4">
-                  <Badge variant="success">
-                    <Check className="h-3 w-3" />
-                    SELECTED
-                  </Badge>
-                </div>
-              )}
-            </motion.div>
-          )
-        })}
+                    <X className="w-3 h-3" />
+                  </button>
+                </Badge>
+              ))}
+            </div>
+            <div className="flex items-center justify-between mt-1">
+              <Badge variant="success">
+                <ScanFace className="h-3 w-3 mr-1" />
+                Match ({score}%)
+              </Badge>
+              <div className="text-on-surface/60 text-xs truncate max-w-[150px]">{match.photo.filename}</div>
+            </div>
+          </div>
+        </div>
+        
+        {isSelected && (
+          <div className="absolute top-4 left-4">
+            <Badge variant="success">
+              <Check className="h-3 w-3 mr-1" />
+              SELECTED
+            </Badge>
+          </div>
+        )}
       </motion.div>
+    )
+  }
+
+  const groupedMatches = useMemo(() => {
+    const visibleMatches = filteredMatches.slice(0, visibleCount)
+    if (sortBy === 'relevance') return null
+    return groupPhotosByMonth(visibleMatches, m => m.photo.captured_at)
+  }, [filteredMatches, visibleCount, sortBy])
+
+  return (
+    <>
+      <div className="flex flex-col gap-8">
+        {groupedMatches ? (
+          groupedMatches.map((group) => (
+            <motion.div 
+              key={group.groupName} 
+              className="flex flex-col gap-4"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              <h3 className="text-xl font-medium text-on-surface flex items-center gap-2 px-2 border-b border-border/50 pb-2">
+                {group.groupName}
+                <span className="text-sm text-on-surface-variant font-normal bg-surface px-2 py-0.5 rounded-full">
+                  {group.items.length} photos
+                </span>
+              </h3>
+              <div className={cn(
+                galleryView === 'grid'
+                  ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-gutter'
+                  : 'flex flex-col gap-4',
+              )}>
+                {group.items.map((match) => {
+                  const globalIdx = filteredMatches.indexOf(match)
+                  return renderPhotoCard(match, globalIdx)
+                })}
+              </div>
+            </motion.div>
+          ))
+        ) : (
+          <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className={cn(
+              galleryView === 'grid'
+                ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-gutter'
+                : 'flex flex-col gap-4',
+            )}
+          >
+            {filteredMatches.slice(0, visibleCount).map((match, idx) => renderPhotoCard(match, idx))}
+          </motion.div>
+        )}
+      </div>
       {filteredMatches.length > visibleCount && (
         <div className="flex flex-col items-center gap-3 mt-8">
           <p className="text-on-surface-variant text-sm">

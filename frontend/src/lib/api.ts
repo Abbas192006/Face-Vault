@@ -4,6 +4,7 @@ export interface PhotoMeta {
   filepath: string
   filename: string
   face_index?: number
+  captured_at?: string
 }
 
 export interface MatchResult {
@@ -50,7 +51,7 @@ export async function pollIndexStatus(taskId: string): Promise<IndexStatus> {
 export async function searchFaces(
   files: File[],
   threshold: number,
-  folderPath?: string,
+  folderPath?: string
 ): Promise<MatchResult[]> {
   const formData = new FormData()
   files.forEach((file) => formData.append('files', file))
@@ -114,6 +115,7 @@ export interface BookmarkData {
   filepath: string
   filename: string
   created_at: string
+  captured_at: string | null
 }
 
 export interface DirectoryItem {
@@ -145,6 +147,7 @@ export interface PersonFaceData {
   filepath: string
   filename: string
   photo_face_count: number
+  captured_at: string | null
 }
 
 // New functions

@@ -15,13 +15,11 @@ export function SearchToolbar() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const {
     probeFiles,
-    targetFolder,
     strictness,
     isScanning,
     isDownloading,
     selectedPaths,
     setProbeFiles,
-    setTargetFolder,
     setStrictness,
     runSearch,
     downloadSelected,

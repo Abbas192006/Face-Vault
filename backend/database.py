@@ -21,9 +21,16 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             filepath TEXT UNIQUE NOT NULL,
             filename TEXT NOT NULL,
-            indexed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            indexed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            captured_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+
+    # Migration for existing databases
+    cursor.execute("PRAGMA table_info(photos)")
+    columns = [info[1] for info in cursor.fetchall()]
+    if 'captured_at' not in columns:
+        cursor.execute("ALTER TABLE photos ADD COLUMN captured_at TIMESTAMP DEFAULT NULL")
     
     # Faces table
     cursor.execute('''
@@ -165,13 +172,15 @@ def clear_search_history():
 
 # ─── Photos ───────────────────────────────────────────────────────────
 
-def add_photo(filepath: str, filename: str) -> int:
+def add_photo(filepath: str, filename: str, captured_at: str = None) -> int:
     conn = get_db_connection()
     cursor = conn.cursor()
+    if captured_at is None:
+        captured_at = datetime.now().isoformat()
     try:
         cursor.execute(
-            "INSERT INTO photos (filepath, filename, indexed_at) VALUES (?, ?, ?)", 
-            (filepath, filename, datetime.now().isoformat())
+            "INSERT INTO photos (filepath, filename, indexed_at, captured_at) VALUES (?, ?, ?, ?)", 
+            (filepath, filename, datetime.now().isoformat(), captured_at)
         )
         conn.commit()
         photo_id = cursor.lastrowid
@@ -216,7 +225,7 @@ def get_photo_by_face_index(embedding_index: int) -> Optional[Dict[str, Any]]:
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute('''
-        SELECT p.id, p.filepath, p.filename, f.box_x1, f.box_y1, f.box_x2, f.box_y2,
+        SELECT p.id, p.filepath, p.filename, p.captured_at, f.box_x1, f.box_y1, f.box_x2, f.box_y2,
                (SELECT COUNT(*) FROM faces f2 WHERE f2.photo_id = p.id) as face_count
         FROM faces f 
         JOIN photos p ON f.photo_id = p.id 
@@ -371,7 +380,7 @@ def get_faces_for_person(person_id: int) -> List[Dict[str, Any]]:
     cursor = conn.cursor()
     cursor.execute('''
         SELECT f.id as face_id, f.box_x1, f.box_y1, f.box_x2, f.box_y2,
-               p.id as photo_id, p.filepath, p.filename,
+               p.id as photo_id, p.filepath, p.filename, p.captured_at,
                (SELECT COUNT(*) FROM faces f2 WHERE f2.photo_id = p.id) as photo_face_count
         FROM people_faces pf
         JOIN faces f ON pf.face_id = f.id
@@ -409,7 +418,7 @@ def get_bookmarks() -> List[Dict[str, Any]]:
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute('''
-        SELECT b.id, b.created_at, p.id as photo_id, p.filepath, p.filename
+        SELECT b.id, b.created_at, p.id as photo_id, p.filepath, p.filename, p.captured_at
         FROM bookmarks b
         JOIN photos p ON b.photo_id = p.id
         ORDER BY b.created_at DESC
@@ -469,7 +478,7 @@ def get_photos_by_tag(label: str) -> List[Dict[str, Any]]:
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute('''
-        SELECT t.id as tag_id, t.created_at, p.id as photo_id, p.filepath, p.filename
+        SELECT t.id as tag_id, t.created_at, p.id as photo_id, p.filepath, p.filename, p.captured_at
         FROM tags t
         JOIN photos p ON t.photo_id = p.id
         WHERE t.label = ?

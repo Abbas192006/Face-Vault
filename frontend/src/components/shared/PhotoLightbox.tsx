@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { ChevronLeft, ChevronRight, X, Heart, Tag } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { getImageUrl, toggleBookmark, addPhotoTag, removePhotoTag, fetchTags } from '@/lib/api'
+import { getImageUrl, toggleBookmark, addPhotoTag, removePhotoTag } from '@/lib/api'
 import { toast } from 'sonner'
 import { cn } from '@/lib/cn'
 

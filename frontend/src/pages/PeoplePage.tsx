@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft, Loader2, Users, Edit2, Check, X, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { PhotoLightbox } from '@/components/shared/PhotoLightbox'
+import { FilterSortMenu } from '@/components/shared/FilterSortMenu'
+import { groupPhotosByMonth } from '@/lib/grouping'
 import { fetchEventPeople, renamePerson, fetchPersonFaces, getImageUrl, downloadZip, type PersonData, type PersonFaceData } from '@/lib/api'
 
 export default function PeoplePage() {
@@ -171,6 +173,38 @@ function PersonFaces({ person, onRename }: { person: PersonData, onRename: () =>
   const [downloading, setDownloading] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
 
+  const [startDate, setStartDate] = useState<string | undefined>()
+  const [endDate, setEndDate] = useState<string | undefined>()
+  const [sortBy, setSortBy] = useState<'relevance' | 'newest' | 'oldest'>('relevance')
+
+  const filteredFaces = useMemo(() => {
+    let result = [...faces]
+    if (startDate || endDate) {
+      result = result.filter((p) => {
+        const cap = p.captured_at
+        if (!cap) return false
+        const capString = cap.split('T')[0]
+        if (startDate && capString < startDate) return false
+        if (endDate && capString > endDate) return false
+        return true
+      })
+    }
+    if (sortBy === 'newest') {
+      result.sort((a, b) => {
+        const t1 = a.captured_at || ""
+        const t2 = b.captured_at || ""
+        return t2.localeCompare(t1)
+      })
+    } else if (sortBy === 'oldest') {
+      result.sort((a, b) => {
+        const t1 = a.captured_at || ""
+        const t2 = b.captured_at || ""
+        return t1.localeCompare(t2)
+      })
+    }
+    return result
+  }, [faces, startDate, endDate, sortBy])
+
   useEffect(() => {
     loadFaces()
   }, [person.id])
@@ -229,31 +263,80 @@ function PersonFaces({ person, onRename }: { person: PersonData, onRename: () =>
         </div>
       </div>
 
+      <div className="bg-surface/30 p-3 border-b border-primary/10 flex items-center">
+        <FilterSortMenu
+          startDate={startDate}
+          endDate={endDate}
+          sortBy={sortBy}
+          onStartDateChange={setStartDate}
+          onEndDateChange={setEndDate}
+          onSortChange={setSortBy}
+        />
+      </div>
+
       <div className="flex-1 overflow-y-auto p-6">
         {loading ? (
           <div className="flex justify-center py-20">
             <Loader2 className="h-10 w-10 animate-spin text-primary" />
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {faces.map((face, idx) => (
-              <div 
-                key={face.face_id} 
-                className="relative group rounded-xl overflow-hidden bg-black aspect-square cursor-pointer"
-                onClick={() => setLightboxIndex(idx)}
-              >
-                <img 
-                  src={getImageUrl(face.filepath)} 
-                  alt={face.filename}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="absolute bottom-3 left-3 right-3 text-xs text-white truncate font-mono">
-                    {face.filename}
+          <div className="flex flex-col gap-8">
+            {sortBy !== 'relevance' ? (
+              groupPhotosByMonth(filteredFaces, m => m.captured_at || undefined).map(group => (
+                <motion.div key={group.groupName} className="flex flex-col gap-4">
+                  <h3 className="text-xl font-medium text-on-surface flex items-center gap-2 px-2 border-b border-border/50 pb-2">
+                    {group.groupName}
+                    <span className="text-sm text-on-surface-variant font-normal bg-surface px-2 py-0.5 rounded-full">
+                      {group.items.length} photos
+                    </span>
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    {group.items.map(face => {
+                      const idx = filteredFaces.indexOf(face)
+                      return (
+                        <div 
+                          key={face.face_id} 
+                          className="relative group rounded-xl overflow-hidden bg-black aspect-square cursor-pointer"
+                          onClick={() => setLightboxIndex(idx)}
+                        >
+                          <img 
+                            src={getImageUrl(face.filepath)} 
+                            alt={face.filename}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="absolute bottom-3 left-3 right-3 text-xs text-white truncate font-mono">
+                              {face.filename}
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
-                </div>
+                </motion.div>
+              ))
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                {filteredFaces.map((face, idx) => (
+                  <div 
+                    key={face.face_id} 
+                    className="relative group rounded-xl overflow-hidden bg-black aspect-square cursor-pointer"
+                    onClick={() => setLightboxIndex(idx)}
+                  >
+                    <img 
+                      src={getImageUrl(face.filepath)} 
+                      alt={face.filename}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute bottom-3 left-3 right-3 text-xs text-white truncate font-mono">
+                        {face.filename}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
           </div>
         )}
       </div>
@@ -261,7 +344,7 @@ function PersonFaces({ person, onRename }: { person: PersonData, onRename: () =>
       <AnimatePresence>
         {lightboxIndex !== null && (
           <PhotoLightbox 
-            photos={faces}
+            photos={filteredFaces}
             initialIndex={lightboxIndex}
             onClose={() => setLightboxIndex(null)}
           />

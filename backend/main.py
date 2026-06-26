@@ -12,6 +12,8 @@ import shutil
 import cv2
 import zipfile
 import io
+import re
+from datetime import datetime
 from database import (
     init_db, add_photo, add_face, get_photo_by_face_index, photo_exists,
     add_search_history, get_search_history, delete_search_history, clear_search_history,
@@ -50,6 +52,54 @@ def read_root():
 
 # ─── Directory Indexing ───────────────────────────────────────────────
 
+def extract_captured_at(path: str, filename: str) -> str:
+    # 1. Try EXIF
+    try:
+        from PIL import Image, ExifTags
+        with Image.open(path) as img:
+            exif = img.getexif()
+            if exif:
+                for tag_id, value in exif.items():
+                    tag = ExifTags.TAGS.get(tag_id, tag_id)
+                    if tag == 'DateTimeOriginal':
+                        dt = datetime.strptime(str(value).strip(), "%Y:%m:%d %H:%M:%S")
+                        return dt.isoformat()
+    except Exception:
+        pass
+        
+    # 2. Try Regex on filename
+    try:
+        match1 = re.search(r'(20\d{2})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})', filename)
+        if match1:
+            dt = datetime(int(match1.group(1)), int(match1.group(2)), int(match1.group(3)),
+                          int(match1.group(4)), int(match1.group(5)), int(match1.group(6)))
+            return dt.isoformat()
+            
+        match2 = re.search(r'(20\d{2})(\d{2})(\d{2})', filename)
+        if match2:
+            dt = datetime(int(match2.group(1)), int(match2.group(2)), int(match2.group(3)))
+            return dt.isoformat()
+            
+        match3 = re.search(r'(20\d{2})-(\d{2})-(\d{2}) at (\d{2})\.(\d{2})\.(\d{2})', filename)
+        if match3:
+            dt = datetime(int(match3.group(1)), int(match3.group(2)), int(match3.group(3)),
+                          int(match3.group(4)), int(match3.group(5)), int(match3.group(6)))
+            return dt.isoformat()
+            
+        match4 = re.search(r'(1[5-7]\d{8})', filename)
+        if match4:
+            dt = datetime.fromtimestamp(int(match4.group(1)))
+            return dt.isoformat()
+    except Exception:
+        pass
+        
+    # 3. Fallback to file modification time
+    try:
+        mtime = os.path.getmtime(path)
+        return datetime.fromtimestamp(mtime).isoformat()
+    except Exception:
+        return datetime.now().isoformat()
+
 def process_directory(directory_path: str, task_id: str, event_id: int = None):
     """Background task to index a folder of images with progress tracking."""
     valid_extensions = ["*.jpg", "*.jpeg", "*.png"]
@@ -75,7 +125,8 @@ def process_directory(directory_path: str, task_id: str, event_id: int = None):
                 continue
 
             filename = os.path.basename(path)
-            photo_id = add_photo(path, filename)
+            captured_at = extract_captured_at(path, filename)
+            photo_id = add_photo(path, filename, captured_at)
             
             # Link photo to event if provided
             if event_id:
@@ -232,6 +283,7 @@ async def search_face(
         if photo_meta:
             if folder_path and folder_path not in photo_meta["filepath"]:
                 continue
+                
             # Add bookmark status
             photo_id = photo_meta.get("id")
             bookmarked = is_bookmarked(photo_id) if photo_id else False

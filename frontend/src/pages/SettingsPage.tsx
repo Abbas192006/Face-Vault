@@ -12,7 +12,7 @@ import { useStatsStore } from '@/stores/stats-store'
 import { nukeAllData } from '@/lib/api'
 
 export default function SettingsPage() {
-  const { defaultStrictness, setDefaultStrictness } = useUIStore()
+  const { setDefaultStrictness } = useUIStore()
   const { setStrictness } = useSearchStore()
   const { stats, loadStats } = useStatsStore()
   const [apiUrl, setApiUrl] = useState(import.meta.env.VITE_API_URL ?? 'http://localhost:8000/api')
@@ -54,7 +54,7 @@ export default function SettingsPage() {
               min={0.2}
               max={1.5}
               step={0.1}
-              value={[defaultStrictness]}
+              value={[useSearchStore((s) => s.strictness)]}
               onValueChange={([v]) => {
                 const val = v ?? 0.6
                 setDefaultStrictness(val)
@@ -62,7 +62,7 @@ export default function SettingsPage() {
               }}
               className="flex-1"
             />
-            <span className="text-primary font-mono w-8">{defaultStrictness.toFixed(1)}</span>
+            <span className="text-primary font-mono w-8">{useSearchStore((s) => s.strictness).toFixed(1)}</span>
           </div>
         </div>
 

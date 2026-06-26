@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { fetchHistory, deleteHistoryEntry, clearAllHistory, type HistoryEntry } from '@/lib/api'
+import { FilterSortMenu } from '@/components/shared/FilterSortMenu'
 
 // Added id to HistoryEntry type inline here if missing from api
 interface ExtendedHistoryEntry extends HistoryEntry {
@@ -45,6 +46,8 @@ function exportHistoryCsv(history: ExtendedHistoryEntry[]) {
 export default function HistoryPage() {
   const [history, setHistory] = useState<ExtendedHistoryEntry[]>([])
   const [searchQuery, setSearchQuery] = useState('')
+  const [startDate, setStartDate] = useState<string | undefined>()
+  const [endDate, setEndDate] = useState<string | undefined>()
   const [loading, setLoading] = useState(false)
 
   const loadHistory = async () => {
@@ -88,14 +91,30 @@ export default function HistoryPage() {
   }
 
   const filtered = useMemo(() => {
-    if (!searchQuery.trim()) return history
-    const q = searchQuery.toLowerCase()
-    return history.filter(
-      (item) =>
-        item.folder_scanned?.toLowerCase().includes(q) ||
-        item.match_count.toString().includes(q),
-    )
-  }, [history, searchQuery])
+    let result = [...history]
+
+    if (startDate || endDate) {
+      result = result.filter((item) => {
+        const cap = item.searched_at
+        if (!cap) return false
+        const capString = cap.split('T')[0]
+        if (startDate && capString < startDate) return false
+        if (endDate && capString > endDate) return false
+        return true
+      })
+    }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase()
+      result = result.filter(
+        (item) =>
+          item.folder_scanned?.toLowerCase().includes(q) ||
+          item.match_count.toString().includes(q),
+      )
+    }
+
+    return result
+  }, [history, searchQuery, startDate, endDate])
 
   return (
     <div className="max-w-container-max mx-auto flex flex-col gap-8">
@@ -136,16 +155,23 @@ export default function HistoryPage() {
         </div>
       </header>
 
-      <div className="glass-card p-4 rounded-xl">
-        <div className="relative">
+      <div className="glass-card p-4 rounded-xl flex flex-col sm:flex-row gap-4 items-center">
+        <div className="relative flex-1 w-full">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
           <Input
-            className="pl-12"
+            className="pl-12 bg-background border-primary/20"
             placeholder="Search history..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
+        <FilterSortMenu
+          startDate={startDate}
+          endDate={endDate}
+          onStartDateChange={setStartDate}
+          onEndDateChange={setEndDate}
+          showSort={false}
+        />
       </div>
 
       <div className="glass-card rounded-xl border border-primary/20 overflow-hidden">

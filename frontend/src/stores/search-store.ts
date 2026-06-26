@@ -27,6 +27,13 @@ interface SearchState {
   searchError: string
   isDownloading: boolean
   recentMatches: MatchResult[]
+  startDate?: string
+  endDate?: string
+  sortBy: 'relevance' | 'newest' | 'oldest'
+
+  setStartDate: (date?: string) => void
+  setEndDate: (date?: string) => void
+  setSortBy: (sort: 'relevance' | 'newest' | 'oldest') => void
 
   setProbeFiles: (files: File[]) => void
   setTargetFolder: (folder: string) => void
@@ -55,6 +62,13 @@ export const useSearchStore = create<SearchState>()(
       searchError: '',
       isDownloading: false,
       recentMatches: [],
+      startDate: undefined,
+      endDate: undefined,
+      sortBy: 'relevance',
+
+      setStartDate: (date) => set({ startDate: date }),
+      setEndDate: (date) => set({ endDate: date }),
+      setSortBy: (sort) => set({ sortBy: sort }),
 
       setProbeFiles: (files) => set({ probeFiles: files }),
       setTargetFolder: (folder) => set({ targetFolder: folder }),
